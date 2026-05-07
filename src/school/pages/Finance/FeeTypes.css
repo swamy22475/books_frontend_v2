@@ -1,0 +1,302 @@
+/* ═══════════════════════════════════════════════════════════════
+   FEE TYPES PREMIUM DESIGN SYSTEM
+   Consistency across Finance Module
+   ═══════════════════════════════════════════════════════════════ */
+
+.ft-page {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+.ft-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ft-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.ft-breadcrumb {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.ft-breadcrumb span {
+  color: #3d5ee1;
+}
+
+/* Stats Widgets */
+.ft-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.ft-stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid #eef0f4;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ft-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.ft-stat-icon {
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 1.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ft-stat-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.ft-stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.01em;
+}
+
+/* Command Bar */
+.ft-command-bar {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid #eef0f4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.ft-search-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.ft-search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border-radius: 1rem;
+  border: 2px solid #f1f5f9;
+  background: #f8fafc;
+  font-size: 0.875rem;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.ft-search-input:focus {
+  border-color: #3d5ee1;
+  background: white;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(61, 94, 225, 0.1);
+}
+
+.fee-select-modern {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  background-color: white;
+  border: 1.5px solid #eef0f4;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.fee-select-modern:focus {
+  border-color: #3d5ee1;
+  box-shadow: 0 0 0 3px rgba(61, 94, 225, 0.1);
+}
+
+.ft-export-buttons {
+  display: flex;
+  gap: 0.5rem;
+  background: transparent;
+}
+
+.ft-export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: transparent;
+  color: #1e293b;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.ft-export-btn:hover {
+  background: #f1f5f9;
+  color: #3d5ee1;
+}
+
+.ft-export-btn svg {
+  color: #64748b;
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: all 0.2s ease;
+}
+
+.ft-export-btn:hover svg {
+  color: #3d5ee1;
+}
+
+/* Table Design */
+.ft-table-card {
+  background: white;
+  border-radius: 1.5rem;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.ft-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ft-table th {
+  background: #f8fafc;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  text-align: left;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.ft-table td {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ft-name-cell {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ft-code-badge {
+  background: #f1f5f9;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Modal Premium */
+.ft-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ft-modal {
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 2rem;
+  padding: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: ftModalIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes ftModalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ft-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.ft-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 0.625rem;
+  display: block;
+}
+
+.ft-input,
+.ft-select,
+.ft-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  height: auto;
+  min-height: 48px;
+  line-height: 1.5;
+  border-radius: 1rem;
+  border: 2px solid #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #1e293b;
+  transition: all 0.2s;
+}
+
+.ft-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.25rem center;
+  padding-right: 2.75rem;
+}
+
+.ft-input:focus {
+  border-color: #3d5ee1;
+  box-shadow: 0 0 0 4px rgba(61, 94, 225, 0.1);
+}

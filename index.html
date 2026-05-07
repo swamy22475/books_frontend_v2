@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mindwhile-erp-reactjs</title>
+  <script>
+    (function () {
+      try {
+        var key = 'vite-ui-theme';
+        var stored = localStorage.getItem(key) || localStorage.getItem('theme');
+        var theme = stored || 'system';
+        var root = document.documentElement;
+        function apply(t) {
+          root.classList.remove('light-theme', 'dark-theme');
+          if (t === 'system') {
+            var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            root.classList.add(isDark ? 'dark-theme' : 'light-theme');
+          } else {
+            root.classList.add(t === 'dark' ? 'dark-theme' : 'light-theme');
+          }
+        }
+        apply(theme);
+        // keep system preference in sync if stored preference is 'system'
+        if (theme === 'system' && window.matchMedia) {
+          try {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+              apply('system');
+            });
+          } catch (e) {
+            // older browsers fallback
+            try {
+              window.matchMedia('(prefers-color-scheme: dark)').addListener(function () {
+                apply('system');
+              });
+            } catch (err) {}
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

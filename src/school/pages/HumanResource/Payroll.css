@@ -1,0 +1,118 @@
+@import '../../../styles/shared-table.css';
+
+.payroll-page {
+  padding: 28px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.payroll-page .container { width: 100%; }
+
+.payroll-page .card.table-card { border-radius: 12px; overflow: hidden; }
+
+.payroll-page .page-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:20px }
+
+.payroll-page .page-title h4 { margin:0; font-size:1.5rem }
+
+/* Payroll specific badge for 'Generated' status (yellow) */
+.status-generated {
+  background: #FFFBEB;
+  color: #B45309;
+}
+
+/* Ensure toolbar/layout matches finance look */
+.filter-bar { padding: 12px 16px; border-bottom: 1px solid var(--ft-border-color); background: var(--ft-card-bg); }
+
+.payroll-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px; /* consistent gap between filters */
+  align-items: center;
+}
+
+.filter-item { display:flex; align-items:center; }
+.filter-item.search { flex: 1 1 320px; min-width: 220px; }
+.filter-item.date { flex: 0 0 auto; min-width: 160px; }
+.filter-item.status { flex: 0 0 auto; min-width: 140px; }
+.filter-item.sort { flex: 0 0 auto; min-width: 160px; }
+
+.search-bar { display:flex; align-items:center; gap:8px; width:100%; }
+.search-bar svg { color: var(--ft-text-muted); flex:0 0 auto }
+.search-input { padding:8px 10px; border:1px solid var(--ft-border-color); border-radius:8px; width:100%; background: var(--ft-input-bg); color: var(--ft-text-color); }
+
+.date-range { display:flex; align-items:center; gap:8px; }
+.date-input { padding:8px 10px; border:1px solid var(--ft-border-color); border-radius:8px; background: var(--ft-input-bg); color: var(--ft-text-color); min-width:160px }
+.date-sep { color:var(--ft-text-muted); }
+
+.select-wrap { min-width:140px }
+.sort-select { padding:8px 10px; border-radius:8px; border:1px solid var(--ft-border-color); background: var(--ft-input-bg); color: var(--ft-text-color); }
+
+.table-toolbar { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--ft-border-color); background: var(--ft-card-bg); flex-wrap:wrap; gap:8px }
+.toolbar-actions { display:flex; gap:8px; align-items:center; margin-left:auto }
+.toolbar-btn { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; border:1px solid var(--ft-border-color); background:var(--ft-input-bg); cursor:pointer }
+.toolbar-btn:disabled { opacity:0.6; cursor:not-allowed }
+
+.table-wrap { overflow:auto; }
+.fee-types-table { width:100%; border-collapse:collapse; min-width:900px; }
+.fee-types-table thead th { text-align:left; padding:14px 16px; font-weight:600; color: #ffffff; border-bottom:1px solid var(--ft-border-color); background: var(--ft-table-header-bg); position:sticky; top:0; z-index:20 }
+.fee-types-table tbody td { padding:14px 16px; border-bottom:1px solid var(--ft-border-color); vertical-align:middle; color: var(--ft-text-color); }
+.checkbox-col { width:56px }
+.actions-col { width:140px; text-align:center }
+
+.action-icons { display:flex; gap:8px; justify-content:center }
+.pill-btn { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-size:13px; border:1px solid var(--ft-border-color); background:transparent; cursor:pointer }
+.pill-btn svg { display:block; vertical-align:middle }
+.pill-btn:hover { background: rgba(61,94,225,0.06); }
+
+.pill-btn .icon-only { width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center }
+
+.status-badge { padding:6px 8px; border-radius:8px; font-weight:600; font-size:13px }
+
+/* Table selection and hover tweaks */
+.fee-types-table td::selection, .fee-types-table th::selection { background: rgba(0,0,0,0.08); color: inherit; }
+
+/* Prevent hover from changing text background color; keep hover only background color */
+.fee-types-table tbody tr:hover td { background: transparent; }
+.fee-types-table tbody tr:hover { background-color: var(--ft-table-hover-bg); }
+
+/* Prevent cell wrapping */
+.fee-types-table th, .fee-types-table td { white-space: nowrap }
+
+/* Dark theme: use shared tokens and ensure inputs use dark input background */
+[data-theme="dark"] .payroll-page .search-input,
+[data-theme="dark"] .payroll-page .sort-select,
+[data-theme="dark"] .payroll-page .date-input { background: var(--ft-input-bg); color: var(--ft-text-color); border:1px solid var(--ft-border-color) }
+
+[data-theme="dark"] .payroll-page .filter-bar { background: var(--ft-card-bg) }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background: rgba(2,6,23,0.5); display:flex; align-items:center; justify-content:center; z-index:60 }
+.modal-card { width:100%; max-width:560px; background: var(--ft-card-bg); border-radius:10px; box-shadow:0 12px 36px rgba(2,6,23,0.4); border:1px solid var(--ft-border-color); overflow:hidden }
+.modal-header { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--ft-border-color) }
+.modal-header h4 { margin:0 }
+.modal-close { background:transparent; border:none; font-size:20px; line-height:1; cursor:pointer }
+.modal-body { padding:16px; color: var(--ft-text) }
+.modal-actions { padding:12px 16px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--ft-border-color) }
+
+/* Responsive: desktop -> tablet -> mobile */
+@media (max-width:900px){
+  /* Tablet: allow two rows via flex-wrap */
+  .filter-item.search { flex: 1 1 48%; }
+  .filter-item.date, .filter-item.status, .filter-item.sort { flex: 1 1 48%; }
+}
+@media (max-width:600px){
+  /* Mobile: stack vertically */
+  .payroll-filters { flex-direction: column; align-items: stretch; }
+  .filter-item { width:100%; }
+  .filter-item.search { min-width: auto }
+}
+
+/* Dark theme tweaks specific to Payroll page (do not change light theme) */
+.dark-theme .payroll-page .card.table-card { background: var(--br-card-bg); border-color: var(--br-border-color); }
+.dark-theme .payroll-page .filter-bar { background: var(--br-card-bg); border-bottom-color: rgba(255,255,255,0.04); }
+.dark-theme .payroll-page .fee-types-table thead th { background: var(--br-card-bg); color: var(--br-table-header-text); }
+.dark-theme .payroll-page .fee-types-table tbody td { color: var(--br-text-color); border-bottom-color: rgba(255,255,255,0.03); }
+.dark-theme .payroll-page .pill-btn { border-color: rgba(255,255,255,0.04); }
+.dark-theme .payroll-page .status-generated { background: rgba(255,235,59,0.06); color: #f59e0b; }
+
+

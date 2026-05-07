@@ -1,0 +1,478 @@
+/* ============================================================================
+   FILTER DROPDOWN COMPONENT - Premium Reusable Filter UI
+   ============================================================================ */
+
+.filter-dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Filter Button */
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--sl-card-bg, #ffffff);
+    border: 1px solid var(--sl-border-color, #e2e8f0);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sl-text-base, #4a5568);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.filter-btn:hover {
+    border-color: var(--sl-border-hover, #cbd5e0);
+    background: var(--sl-bg-hover, #f7fafc);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-btn:active {
+    transform: scale(0.98);
+}
+
+.filter-btn.active {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-btn.filtered {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.filter-btn.filtered:hover {
+    background: #fef2f2;
+}
+
+/* Chevron icon animation */
+.filter-btn .chevron {
+    transition: transform 0.3s ease;
+    display: inline-flex;
+}
+
+.filter-btn.active .chevron {
+    transform: rotate(180deg);
+}
+
+/* FILTER DROPDOWN PANEL - Premium Design
+   Uses absolute positioning relative to inline-block wrapper for consistent placement */
+
+.filter-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--sl-card-bg, #ffffff);
+    border: 1px solid var(--sl-border-color, #e2e8f0);
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12),
+                0 0 1px rgba(0, 0, 0, 0.04);
+    min-width: 300px;
+    max-width: 380px;
+    max-height: 70vh;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-origin: top right;
+    will-change: transform, opacity;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Position dropdown intelligently - wrapper is inline-block, dropdown is absolutely positioned */
+.filter-dropdown-wrapper:has(.filter-dropdown-panel) {
+    position: relative;
+}
+
+/* ============================================================================
+   FILTER PANEL HEADER
+   ============================================================================ */
+
+.filter-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--sl-border-color, #e2e8f0);
+    background: var(--sl-bg-subtle, #f9fafb);
+    flex-shrink: 0;
+}
+
+.filter-panel-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--sl-text-base, #1a202c);
+    letter-spacing: 0.3px;
+}
+
+.close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--sl-text-muted, #718096);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: var(--sl-bg-hover, #f0f4f8);
+    color: var(--sl-text-base, #2d3748);
+}
+
+/* ============================================================================
+   FILTER PANEL CONTENT - Scrollable
+   ============================================================================ */
+
+.filter-panel-content {
+    flex: 1;
+    padding: 16px 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.filter-panel-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-panel-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.filter-panel-content::-webkit-scrollbar-thumb {
+    background: var(--sl-border-color, #cbd5e0);
+    border-radius: 3px;
+    opacity: 0.6;
+}
+
+.filter-panel-content::-webkit-scrollbar-thumb:hover {
+    background: var(--sl-border-hover, #a0aec0);
+    opacity: 1;
+}
+
+/* Checkbox Item */
+.filter-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.filter-checkbox-item:hover {
+    background: var(--sl-bg-hover, #f7fafc);
+}
+
+.filter-checkbox-item:last-child {
+    margin-bottom: 0;
+}
+
+.filter-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.filter-checkbox-item input[type="checkbox"]:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+.checkbox-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sl-text-base, #4a5568);
+    flex: 1;
+    line-height: 1.4;
+}
+
+/* Empty State */
+.empty-message {
+    padding: 20px 12px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--sl-text-muted, #a0aec0);
+    margin: 0;
+}
+
+/* Warning Box */
+.warning-box {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fef2f2;
+    border-left: 3px solid #ef4444;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #991b1b;
+    line-height: 1.5;
+}
+
+/* ============================================================================
+   FILTER PANEL FOOTER - Sticky
+   ============================================================================ */
+
+.filter-panel-footer {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--sl-border-color, #e2e8f0);
+    background: var(--sl-bg-subtle, #f9fafb);
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+/* Reset Button */
+.btn-reset {
+    padding: 8px 16px;
+    background: var(--sl-bg-secondary, #edf2f7);
+    color: var(--sl-text-base, #4a5568);
+    border: 1px solid var(--sl-border-color, #e2e8f0);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-reset:hover {
+    background: var(--sl-bg-hover, #e2e8f0);
+    border-color: var(--sl-border-hover, #cbd5e0);
+}
+
+.btn-reset:active {
+    transform: scale(0.96);
+}
+
+.btn-reset:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Apply Button */
+.btn-apply {
+    padding: 8px 20px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-apply:hover:not(.disabled) {
+    background: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-apply:active:not(.disabled) {
+    transform: scale(0.96);
+}
+
+.btn-apply:focus:not(.disabled) {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.btn-apply.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #cbd5e0;
+    border-color: #cbd5e0;
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+    .filter-btn {
+        --sl-card-bg: #1f2937;
+        --sl-text-base: #e5e7eb;
+        --sl-border-color: #374151;
+        --sl-bg-hover: #374151;
+    }
+
+    .filter-btn.active {
+        --sl-card-bg: rgba(59, 130, 246, 0.1);
+        --sl-border-color: #60a5fa;
+        --sl-text-base: #60a5fa;
+    }
+
+    .filter-dropdown-panel {
+        --sl-card-bg: #1f2937;
+        --sl-border-color: #374151;
+        --sl-bg-subtle: #111827;
+        --sl-text-base: #e5e7eb;
+        --sl-text-muted: #9ca3af;
+    }
+
+    .filter-panel-header {
+        border-bottom-color: #374151;
+    }
+
+    .filter-checkbox-item:hover {
+        background: #374151;
+    }
+
+    .warning-box {
+        background: #7f1d1d;
+        border-left-color: #fca5a5;
+        color: #feca5e;
+    }
+
+    .filter-panel-footer {
+        border-top-color: #374151;
+    }
+
+    .btn-reset {
+        --sl-bg-secondary: #374151;
+        --sl-border-color: #4b5563;
+        --sl-text-base: #d1d5db;
+    }
+
+    .btn-reset:hover {
+        background: #4b5563;
+    }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .filter-dropdown-panel {
+        position: fixed;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%);
+        min-width: 90vw;
+        max-width: 95vw;
+        max-height: 80vh;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -55%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .filter-panel-header {
+        padding: 14px 16px;
+    }
+
+    .filter-panel-header h3 {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-dropdown-panel {
+        min-width: 95vw;
+        max-height: 85vh;
+    }
+
+    .filter-panel-content {
+        padding: 12px;
+    }
+
+    .filter-checkbox-item {
+        padding: 12px;
+        margin-bottom: 6px;
+    }
+}
+
+/* ============================================================================
+   PREVENT OVERFLOW CLIPPING - Parent Elements
+   ============================================================================ */
+
+/* Allow overflow in parent containers */
+.card.table-card,
+.soft-card,
+.table-card,
+.table-wrap-container {
+    overflow: visible;
+}
+
+.table-toolbar {
+    overflow: visible;
+    position: relative;
+}
+
+.filter-bar {
+    overflow: visible;
+    position: relative;
+}
+
+.controls-section {
+    overflow: visible;
+    position: relative;
+}
+
+/* Prevent parent overflow from hiding dropdown */
+.table-wrap {
+    overflow: auto;
+    /* Dropdown is positioned fixed, so it won't be affected */
+}
+
+/* ============================================================================
+   HIGH Z-INDEX MANAGEMENT
+   ============================================================================ */
+
+.filter-dropdown-panel {
+    z-index: 9999;
+    /* Ensures this is above:
+       - Modal overlays (9000-9100)
+       - Tooltips (9500)
+       - Most dropdowns (100-1000)
+       - Card shadows (0-10)
+    */
+}

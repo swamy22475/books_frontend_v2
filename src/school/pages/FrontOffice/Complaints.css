@@ -1,0 +1,72 @@
+/* Complaints Page Specific Styles */
+@import './VisitorBook.css';
+
+.complaints-page {
+    animation: fadeInPage 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-table-v2 thead tr {
+    background: #eef2ff !important;
+}
+
+.premium-table-v2 thead th {
+    color: #4338ca !important;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 20px 15px !important;
+    border-bottom: none !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+}
+
+.status-badge-premium {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+}
+
+.status-badge-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    filter: brightness(1.05);
+}
+
+.status-badge-premium.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.5),
+            transparent);
+    animation: statusShimmer 3s infinite;
+}
+
+@keyframes statusShimmer {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 150%;
+    }
+
+    100% {
+        left: 150%;
+    }
+}
