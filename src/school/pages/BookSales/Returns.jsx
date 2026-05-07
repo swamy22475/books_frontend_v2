@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api-client';
+import { returnsService } from '../../../api/returns';
+import { salesService } from '../../../api/sales';
 import './BookSales.css';
 import './SalesEntry.css';
 
@@ -21,14 +20,14 @@ const Returns = () => {
     // ── Fetch Data ──
     const fetchSales = async () => {
         try {
-            const data = await api.get('/sales/');
+            const data = await salesService.getAll();
             setAllSales(data);
-        } catch (err) { console.error('Error fetching sales:', err); }
+        } catch (err) { console.error('Error fetching sales:', err.message); }
     };
 
     const fetchReturns = async () => {
         try {
-            const data = await api.get('/returns/');
+            const data = await returnsService.getAll();
             const mapped = data.map(r => ({
                 id: r.id,
                 student: r.student_name,
@@ -41,7 +40,7 @@ const Returns = () => {
             }));
             setReturns(mapped);
         } catch (err) {
-            console.error('Error fetching returns:', err);
+            console.error('Error fetching returns:', err.message);
             setReturns([]);
         }
     };
@@ -89,14 +88,14 @@ const Returns = () => {
                 reason: form.reason,
                 status: 'Pending'
             };
-            await api.post('/returns/', payload);
+            await returnsService.create(payload);
             await fetchReturns(); // Refresh list
             setForm(emptyForm);
             setStudentSearch('');
             setShowModal(false);
         } catch (err) { 
-            console.error('Error submitting return:', err);
-            const msg = err.response?.data?.detail || err.message || 'Unknown error';
+            console.error('Error submitting return:', err.message);
+            const msg = err.message || 'Unknown error';
             alert(`Failed to save return: ${msg}`);
         } finally {
             setLoading(false);
@@ -105,9 +104,9 @@ const Returns = () => {
 
     const updateStatus = async (id, status) => {
         try {
-            await api.put(`/returns/${id}`, { status });
+            await returnsService.update(id, { status });
             fetchReturns(); // Refresh list
-        } catch (err) { console.error('Error updating status:', err); }
+        } catch (err) { console.error('Error updating status:', err.message); }
     };
 
     const totalReturns = returns.length;

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api-client';
+import { salesService } from '../../../api/sales';
+import { inventoryService } from '../../../api/inventory';
+import { returnsService } from '../../../api/returns';
+import { vendorService } from '../../../api/vendors';
 import {
     BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -44,17 +47,17 @@ const BookSalesReports = () => {
         const fetchData = async () => {
             try {
                 const [sData, iData, rData, vData] = await Promise.all([
-                    api.get('/sales/'),
-                    api.get('/inventory/'),
-                    api.get('/returns/'),
-                    api.get('/vendors/')
+                    salesService.getAll(),
+                    inventoryService.getAll(),
+                    returnsService.getAll(),
+                    vendorService.getAll()
                 ]);
                 setSales(sData);
                 setInventory(iData);
                 setReturns(rData);
                 setVendors(vData);
             } catch (err) {
-                console.error('Error fetching report data:', err);
+                console.error('Error fetching report data:', err.message);
             } finally {
                 setLoading(false);
             }

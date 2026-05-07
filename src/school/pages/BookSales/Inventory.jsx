@@ -126,8 +126,9 @@ const Inventory = () => {
             fetchBooks();
             setShowModal(false);
         } catch (err) {
-            console.error('Error saving book:', err.message);
-            alert('Failed to save. Check if backend is running.');
+            const msg = err.message || 'Unknown error';
+            console.error('Error saving book:', msg);
+            alert(`Failed to save: ${msg}`);
         }
     };
 

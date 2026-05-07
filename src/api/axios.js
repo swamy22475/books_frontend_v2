@@ -1,8 +1,10 @@
 import axios from 'axios';
 
-// Base URL points to your Render backend
-// We keep it as the domain only to avoid double-prefix issues in services
-const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+const rawURL = import.meta.env.VITE_API_URL;
+if (!rawURL) {
+  console.warn('VITE_API_URL is missing! Falling back to localhost:8000. Please check your .env file and restart your server.');
+}
+const baseURL = (rawURL || 'http://localhost:8000').replace(/\/$/, '');
 
 const axiosInstance = axios.create({
   baseURL,

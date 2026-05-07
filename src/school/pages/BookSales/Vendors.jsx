@@ -83,8 +83,9 @@ const Vendors = () => {
             setForm(emptyVendor);
             setEditId(null);
         } catch (error) {
-            console.error('Error saving vendor:', error.message);
-            alert('Failed to save vendor. Please try again.');
+            const msg = error.message || 'Unknown error';
+            console.error('Error saving vendor:', msg);
+            alert(`Failed to save vendor: ${msg}\n\nPlease check if your backend is running at the correct URL. If you are seeing localhost:8000, please restart your terminal with 'npm run dev'.`);
         }
     };
 
