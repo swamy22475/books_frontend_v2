@@ -6,7 +6,7 @@ import {
     ResponsiveContainer, Legend
 } from 'recharts';
 import { monthlySalesData, stockVsSoldData } from './bookSalesData';
-import { api } from '../../../lib/api-client';
+import { dashboardService } from '../../../api/dashboard';
 import './BookSales.css';
 
 const quickActions = [
@@ -48,10 +48,10 @@ const BookSalesDashboard = () => {
     const fetchDashboardData = async (filter) => {
         try {
             setLoading(true);
-            const res = await api.get(`/dashboard/?period=${filter}`);
+            const res = await dashboardService.getSummary(filter);
             setData(res);
         } catch (error) {
-            console.error('Error fetching dashboard:', error);
+            console.error('Error fetching dashboard:', error.message);
         } finally {
             setLoading(false);
         }
