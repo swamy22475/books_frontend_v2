@@ -3,39 +3,44 @@
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-    --bs-primary: #3d5ee1;
-    --bs-primary-dark: #2b4fc4;
-    --bs-success: #28c76f;
-    --bs-danger: #ea5455;
-    --bs-warning: #ff9f43;
-    --bs-info: #00cfe8;
-    --bs-purple: #7367f0;
+    --bs-primary: #6366f1;
+    --bs-primary-dark: #4f46e5;
+    --bs-secondary: #f43f5e;
+    --bs-success: #10b981;
+    --bs-danger: #ef4444;
+    --bs-warning: #f59e0b;
+    --bs-info: #0ea5e9;
+    --bs-purple: #8b5cf6;
     --bs-card-bg: #ffffff;
-    --bs-page-bg: #f7f8fa;
-    --bs-border: #eef0f4;
-    --bs-text: #333448;
-    --bs-muted: #6e6b7b;
-    --bs-light: #b5b5c3;
-    --bs-shadow: 0 2px 8px rgba(0, 0, 0, 0.045);
-    --bs-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
+    --bs-page-bg: #f8fafc;
+    --bs-border: #e2e8f0;
+    --bs-text: #1e293b;
+    --bs-muted: #64748b;
+    --bs-light: #94a3b8;
+    --bs-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --bs-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
     --bs-input-bg: #ffffff;
-    --bs-table-header-bg: linear-gradient(90deg, #3d5ee1, #2b4fc4);
-    --bs-table-hover: rgba(61, 94, 225, 0.03);
-    --bs-radius: 14px;
-    --bs-radius-sm: 8px;
+    --bs-table-header-bg: linear-gradient(135deg, #6366f1, #4f46e5);
+    --bs-table-hover: rgba(99, 102, 241, 0.04);
+    --bs-radius: 16px;
+    --bs-radius-sm: 10px;
+    --bs-glass: rgba(255, 255, 255, 0.8);
+    --bs-glass-border: rgba(255, 255, 255, 0.4);
 }
 
-[data-theme="dark"] {
-    --bs-card-bg: #0b1220;
+.dark {
+    --bs-card-bg: #1e293b;
     --bs-page-bg: #0f172a;
-    --bs-border: rgba(255, 255, 255, 0.06);
-    --bs-text: #e5e7eb;
-    --bs-muted: #9ca3af;
-    --bs-light: #6b7280;
-    --bs-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    --bs-input-bg: rgba(255, 255, 255, 0.04);
-    --bs-table-header-bg: linear-gradient(90deg, #1e3a8a, #3b82f6);
-    --bs-table-hover: rgba(96, 165, 250, 0.06);
+    --bs-border: rgba(255, 255, 255, 0.1);
+    --bs-text: #f8fafc;
+    --bs-muted: #94a3b8;
+    --bs-light: #64748b;
+    --bs-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    --bs-input-bg: rgba(15, 23, 42, 0.6);
+    --bs-table-header-bg: linear-gradient(135deg, #4f46e5, #3730a3);
+    --bs-table-hover: rgba(99, 102, 241, 0.08);
+    --bs-glass: rgba(30, 41, 59, 0.8);
+    --bs-glass-border: rgba(255, 255, 255, 0.05);
 }
 
 /* ── Page Shell ─────────────────────────────────────────────── */
@@ -104,57 +109,79 @@
 .bs-kpi-card {
     background: var(--bs-card-bg);
     border-radius: var(--bs-radius);
-    padding: 20px;
+    padding: 22px;
     border: 1px solid var(--bs-border);
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
+    align-items: center;
+    gap: 16px;
     box-shadow: var(--bs-shadow);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    cursor: default;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.bs-kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.05));
+    border-radius: 0 0 0 100%;
+    transition: all 0.3s ease;
 }
 
 .bs-kpi-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-5px);
     box-shadow: var(--bs-shadow-hover);
+    border-color: var(--bs-primary);
+}
+
+.bs-kpi-card:hover::after {
+    width: 100px; height: 100px;
 }
 
 .bs-kpi-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 26px;
     flex-shrink: 0;
+    box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1);
 }
 
 .bs-kpi-info {
     flex: 1;
-    min-width: 0;
 }
 
 .bs-kpi-label {
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--bs-muted);
-    margin: 0 0 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 0 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .bs-kpi-value {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 800;
     color: var(--bs-text);
-    margin: 0 0 4px;
-    line-height: 1.2;
+    margin: 0;
+    letter-spacing: -0.5px;
 }
 
 .bs-kpi-sub {
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 500;
     color: var(--bs-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* ── Card Base ──────────────────────────────────────────────── */
@@ -468,45 +495,55 @@
 .bs-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: 1px solid transparent;
 }
 
 .bs-badge-green {
-    background: #e8faf1;
-    color: #28c76f;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
 .bs-badge-red {
-    background: #fce8e8;
-    color: #ea5455;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
 }
 
 .bs-badge-blue {
-    background: #eef1fd;
-    color: #3d5ee1;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    border-color: rgba(99, 102, 241, 0.2);
 }
 
 .bs-badge-orange {
-    background: #fff5e6;
-    color: #ff9f43;
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.2);
 }
 
 .bs-badge-purple {
-    background: #f0edff;
-    color: #7367f0;
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+    border-color: rgba(139, 92, 246, 0.2);
 }
 
 .bs-badge-gray {
-    background: #f0f0f0;
-    color: #6c757d;
+    background: rgba(100, 116, 139, 0.1);
+    color: #64748b;
+    border-color: rgba(100, 116, 139, 0.2);
 }
 
 .bs-badge-cyan {
-    background: #e0fafb;
-    color: #00cfe8;
+    background: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.2);
 }
 
 /* ── Pagination ─────────────────────────────────────────────── */
@@ -553,24 +590,26 @@
 .bs-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(16, 24, 40, 0.5);
+    background: rgba(15, 23, 42, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1200;
     padding: 20px;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .bs-modal {
-    background: var(--bs-card-bg);
+    background: var(--bs-glass);
     border-radius: var(--bs-radius);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     width: 100%;
     max-width: 580px;
     max-height: calc(100vh - 80px);
     overflow-y: auto;
-    animation: bsModalIn 0.25s ease;
+    border: 1px solid var(--bs-glass-border);
+    animation: bsModalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .bs-modal-lg {

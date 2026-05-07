@@ -119,8 +119,73 @@ const Header = ({ toggleSidebar }) => {
                 {/* Menu toggle removed as requested */}
             </div>
 
-            <div className="header-right">
-                {/* Header details removed as requested */}
+            <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingRight: '20px' }}>
+                <div className="theme-toggle-group" style={{ 
+                    display: 'flex', 
+                    background: 'var(--bs-border)', 
+                    padding: '4px', 
+                    borderRadius: '30px',
+                    gap: '4px'
+                }}>
+                    <button 
+                        onClick={() => setTheme('light')}
+                        className={`theme-btn ${theme === 'light' ? 'active' : ''}`}
+                        style={{
+                            border: 'none',
+                            background: theme === 'light' ? 'var(--bs-primary)' : 'transparent',
+                            color: theme === 'light' ? '#fff' : 'var(--bs-muted)',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'all 0.3s ease'
+                        }}
+                    >
+                        <SunIcon size={16} /> Light
+                    </button>
+                    <button 
+                        onClick={() => setTheme('dark')}
+                        className={`theme-btn ${theme === 'dark' ? 'active' : ''}`}
+                        style={{
+                            border: 'none',
+                            background: theme === 'dark' ? 'var(--bs-primary)' : 'transparent',
+                            color: theme === 'dark' ? '#fff' : 'var(--bs-muted)',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'all 0.3s ease'
+                        }}
+                    >
+                        <MoonIcon size={16} /> Dark
+                    </button>
+                </div>
+
+                <div className="user-profile-brief" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--bs-text)' }}>Admin User</div>
+                        <div style={{ fontSize: '11px', color: 'var(--bs-muted)' }}>School Principal</div>
+                    </div>
+                    <div style={{ 
+                        width: '38px', 
+                        height: '38px', 
+                        borderRadius: '50%', 
+                        background: 'linear-gradient(135deg, var(--bs-primary), var(--bs-purple))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justify-content: 'center',
+                        color: '#fff',
+                        fontWeight: '700'
+                    }}>A</div>
+                </div>
             </div>
         </header>
     );
