@@ -181,7 +181,7 @@ const Header = ({ toggleSidebar }) => {
                         background: 'linear-gradient(135deg, var(--bs-primary), var(--bs-purple))',
                         display: 'flex',
                         alignItems: 'center',
-                        justify-content: 'center',
+                        justifyContent: 'center',
                         color: '#fff',
                         fontWeight: '700'
                     }}>A</div>
