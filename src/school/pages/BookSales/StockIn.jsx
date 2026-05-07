@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api-client';
+import { inventoryService } from '../../../api/inventory';
+import { vendorService } from '../../../api/vendors';
+import { stockService } from '../../../api/stock';
 import './BookSales.css';
 import './StockIn.css';
-
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const calcSold = (item) => Math.max(0, Number(item.qty) - Number(item.stock));
@@ -13,15 +14,10 @@ const getStatus = (pct) => {
     if (pct === 0) return { label: 'Out of Stock', tag: 'si-tag-red', dot: 'si-dot-red', bar: '#ea5455', icon: '🔴' };
     if (pct < 30) return { label: 'Low Stock', tag: 'si-tag-orange', dot: 'si-dot-orange', bar: '#ff9f43', icon: '🟠' };
     if (pct >= 40) return { label: 'Available', tag: 'si-tag-green', dot: 'si-dot-green', bar: '#28c76f', icon: '🟢' };
-    // 30–39 % → also orange (between thresholds)
     return { label: 'Low Stock', tag: 'si-tag-orange', dot: 'si-dot-orange', bar: '#ff9f43', icon: '🟠' };
 };
 
 const today = new Date().toISOString().split('T')[0];
-
-// Stock-in log — each entry is a receipt from a vendor
-const initialLog = [];
-
 const emptyForm = { book: '', vendor: '', received: '', date: today, invoice: '', remarks: '' };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -36,16 +32,16 @@ const StockIn = () => {
     const [search, setSearch] = useState('');
     const [filterClass, setFilterClass] = useState('All');
     const [filterStatus, setFilterStatus] = useState('All');
-    const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'log'
+    const [activeTab, setActiveTab] = useState('overview');
 
     // ── Fetch books, vendors, and log from backend ──
     const load = async () => {
         try {
             setLoading(true);
             const [books, vendors, stockLog] = await Promise.all([
-                api.get('/inventory/'),
-                api.get('/vendors/'),
-                api.get('/stock/'),
+                inventoryService.getAll(),
+                vendorService.getAll(),
+                stockService.getAll(),
             ]);
             // Map backend fields to what the component uses
             const mapped = books.map(b => ({
@@ -127,7 +123,7 @@ const StockIn = () => {
                 remarks: form.remarks
             };
             
-            await api.post('/stock/', payload);
+            await stockService.create(payload);
             await load(); // Reload all data
             setForm(emptyForm);
             setShowModal(false);

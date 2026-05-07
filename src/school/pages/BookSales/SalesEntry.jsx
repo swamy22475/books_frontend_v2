@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api-client';
+import { salesService } from '../../../api/sales';
+import { inventoryService } from '../../../api/inventory';
 import './BookSales.css';
 import './SalesEntry.css';
 
@@ -40,7 +41,7 @@ const SalesEntry = () => {
 
     // ── Fetch books and sales from backend on mount ────────────────────────
     const fetchInventory = () => {
-        api.get('/inventory/').then(data => {
+        inventoryService.getAll().then(data => {
             const mapped = data.map(b => ({
                 id: b.id,
                 name: b.name,
@@ -51,11 +52,11 @@ const SalesEntry = () => {
                 sellingPrice: b.selling_price || 0,
             }));
             setInventory(mapped);
-        }).catch(err => console.error('Error fetching inventory:', err));
+        }).catch(err => console.error('Error fetching inventory:', err.message));
     };
 
     const fetchSales = () => {
-        api.get('/sales/').then(data => {
+        salesService.getAll().then(data => {
             const mapped = data.map(s => ({
                 id: s.id,
                 student: s.student_name,
@@ -145,7 +146,7 @@ const SalesEntry = () => {
                     total_amount: item.book.sellingPrice * item.qty,
                     payment_method: student.payment
                 };
-                return api.post('/sales/', saleData);
+                return salesService.create(saleData);
             });
 
             await Promise.all(promises);

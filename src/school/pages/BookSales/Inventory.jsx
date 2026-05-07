@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api-client';
+import { inventoryService } from '../../../api/inventory';
+import { vendorService } from '../../../api/vendors';
 import './BookSales.css';
 
 const emptyBook = {
@@ -63,10 +64,10 @@ const Inventory = () => {
     const fetchBooks = async () => {
         try {
             setLoading(true);
-            const data = await api.get('/inventory/');
+            const data = await inventoryService.getAll();
             setBooks(data.map(mapToFrontend));
         } catch (err) {
-            console.error('Error fetching books:', err);
+            console.error('Error fetching books:', err.message);
         } finally {
             setLoading(false);
         }
@@ -74,10 +75,10 @@ const Inventory = () => {
 
     const fetchVendors = async () => {
         try {
-            const data = await api.get('/vendors/');
+            const data = await vendorService.getAll();
             setVendors(data);
         } catch (err) {
-            console.error('Error fetching vendors:', err);
+            console.error('Error fetching vendors:', err.message);
         }
     };
 
@@ -118,25 +119,26 @@ const Inventory = () => {
         try {
             const payload = mapToBackend(form);
             if (editId) {
-                await api.put(`/inventory/${editId}`, payload);
+                await inventoryService.update(editId, payload);
             } else {
-                await api.post('/inventory/', payload);
+                await inventoryService.create(payload);
             }
             fetchBooks();
             setShowModal(false);
         } catch (err) {
-            console.error('Error saving book:', err);
+            console.error('Error saving book:', err.message);
             alert('Failed to save. Check if backend is running.');
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this book?')) {
+        if (window.confirm('Are you sure you want to delete this book?')) {
             try {
-                await api.delete(`/inventory/${id}`);
+                await inventoryService.delete(id);
                 fetchBooks();
             } catch (err) {
-                console.error('Error deleting book:', err);
+                console.error('Error deleting book:', err.message);
+                alert('Failed to delete book.');
             }
         }
     };
