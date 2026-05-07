@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Professional API configuration
-// This URL will automatically switch between Render (prod) and Localhost (dev)
-const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '') + '/api/v1';
+// Base URL points to your Render backend
+// We keep it as the domain only to avoid double-prefix issues in services
+const baseURL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
 const axiosInstance = axios.create({
   baseURL,
@@ -12,42 +12,34 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request Interceptor: Handles Auth and Tenant isolation
+// Request Interceptor: Handles Auth and logs URLs for debugging
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Attach JWT token from localStorage
     const token = localStorage.getItem('auth_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
 
-    // Attach Tenant ID for multi-school isolation
     const tenantId = localStorage.getItem('tenant_id');
     if (tenantId) config.headers['X-Tenant-ID'] = tenantId;
 
+    // Log the full URL being called for debugging
+    console.log(`[API Request] ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+    
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Global error handling and auto-logout on session expiry
+// Response Interceptor: Clean data return and error logging
 axiosInstance.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    const status = error.response?.status;
+    console.error('[API Error Response]', error.response?.status, error.response?.data || error.message);
     
-    // Auto-logout if token is expired (401)
-    if (status === 401) {
+    if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
-      // window.location.href = '/auth/login'; // Enable this if you have a login page
     }
 
-    const errorMessage = error.response?.data?.detail || error.message || 'An unexpected error occurred';
-    console.error('[API Error]', errorMessage);
-    
-    return Promise.reject({
-      message: errorMessage,
-      status: status,
-      originalError: error
-    });
+    return Promise.reject(error);
   }
 );
 

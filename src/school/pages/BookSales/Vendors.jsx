@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../../lib/api-client';
+import { vendorService } from '../../../api/vendors';
 import './BookSales.css';
 
 const emptyVendor = { name: '', type: 'Wholesaler', phone: '', address: '', payment: 'Cash', booksSupplied: 0, amount: 0, status: 'Active' };
@@ -47,10 +47,10 @@ const Vendors = () => {
     const fetchVendors = async () => {
         try {
             setLoading(true);
-            const data = await api.get('/vendors/');
+            const data = await vendorService.getAll();
             setVendors(data.map(mapToFrontend));
         } catch (error) {
-            console.error('Error fetching vendors:', error);
+            console.error('Error fetching vendors:', error.message);
         } finally {
             setLoading(false);
         }
@@ -74,25 +74,28 @@ const Vendors = () => {
         try {
             const payload = mapToBackend(form);
             if (editId) {
-                await api.put(`/vendors/${editId}`, payload);
+                await vendorService.update(editId, payload);
             } else {
-                await api.post('/vendors/', payload);
+                await vendorService.create(payload);
             }
-            fetchVendors(); // Refresh list from DB
             setShowModal(false);
+            fetchVendors(); // Refresh list from DB
+            setForm(emptyVendor);
+            setEditId(null);
         } catch (error) {
-            console.error('Error saving vendor:', error);
-            alert('Failed to save vendor. Please check if backend is running.');
+            console.error('Error saving vendor:', error.message);
+            alert('Failed to save vendor. Please try again.');
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Delete this vendor?')) {
+        if (window.confirm('Are you sure you want to delete this vendor?')) {
             try {
-                await api.delete(`/vendors/${id}`);
+                await vendorService.delete(id);
                 fetchVendors(); // Refresh list from DB
             } catch (error) {
-                console.error('Error deleting vendor:', error);
+                console.error('Error deleting vendor:', error.message);
+                alert('Failed to delete vendor.');
             }
         }
     };

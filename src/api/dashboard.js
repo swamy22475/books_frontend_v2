@@ -1,5 +1,6 @@
 import api from './axios';
 
+// Correct absolute path for the backend
 const PREFIX = '/api/v1/dashboard';
 
 export const dashboardService = {
