@@ -5,7 +5,6 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, Legend
 } from 'recharts';
-import { monthlySalesData, stockVsSoldData } from './bookSalesData';
 import { dashboardService } from '../../../api/dashboard';
 import './BookSales.css';
 
@@ -41,7 +40,9 @@ const BookSalesDashboard = () => {
         recent_vendors: [],
         low_stock: [],
         payment_methods: [],
-        vendor_types: []
+        vendor_types: [],
+        monthly_sales: [],
+        stock_vs_sold: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -61,7 +62,7 @@ const BookSalesDashboard = () => {
         fetchDashboardData(period);
     }, [period]);
 
-    const { kpis, recent_sales, recent_vendors, low_stock, payment_methods, vendor_types } = data;
+    const { kpis, recent_sales, recent_vendors, low_stock, payment_methods, vendor_types, monthly_sales, stock_vs_sold } = data;
 
     const kpiCards = [
         { label: 'Total Vendors', value: kpis.vendors, icon: '🏢', color: '#3d5ee1', bg: '#eef1fd', sub: `${kpis.active_vendors} Active` },
@@ -102,6 +103,14 @@ const BookSalesDashboard = () => {
                     ))}
                 </div>
             </div>
+
+            {loading ? (
+                <div className="bs-loading-overlay">
+                    <div className="bs-spinner"></div>
+                    <p>Loading real-time analytics...</p>
+                </div>
+            ) : (
+                <>
 
             {/* KPI Cards */}
             <div className="bs-kpi-grid">
@@ -148,7 +157,7 @@ const BookSalesDashboard = () => {
                     </div>
                     <div className="bs-chart-body">
                         <ResponsiveContainer width="100%" height={220}>
-                            <AreaChart data={monthlySalesData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
+                            <AreaChart data={monthly_sales} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
                                 <defs>
                                     <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#3d5ee1" stopOpacity={0.3} />
@@ -161,7 +170,7 @@ const BookSalesDashboard = () => {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f7" />
                                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
+                                <YAxis tick={{ fontSize: 11 }} tickFormatter={v => v >= 1000 ? `₹${(v / 1000).toFixed(1)}k` : `₹${v}`} />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend />
                                 <Area type="monotone" dataKey="sales" name="Sales" stroke="#3d5ee1" fill="url(#salesGrad)" strokeWidth={2.5} />
@@ -179,7 +188,7 @@ const BookSalesDashboard = () => {
                     </div>
                     <div className="bs-chart-body">
                         <ResponsiveContainer width="100%" height={220}>
-                            <BarChart data={stockVsSoldData} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
+                            <BarChart data={stock_vs_sold} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f7" />
                                 <XAxis dataKey="book" tick={{ fontSize: 11 }} />
                                 <YAxis tick={{ fontSize: 11 }} />
@@ -389,6 +398,8 @@ const BookSalesDashboard = () => {
                     </table>
                 </div>
             </div>
+                </>
+            )}
         </div>
     );
 };

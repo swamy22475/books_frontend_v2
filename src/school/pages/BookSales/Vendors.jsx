@@ -89,6 +89,33 @@ const Vendors = () => {
         }
     };
 
+    const handlePayment = async (vendor, type) => {
+        const amount = Number(vendor.amount);
+        if (amount <= 0) {
+            alert('No outstanding balance for this vendor.');
+            return;
+        }
+
+        let paymentAmount = type === 'full' ? amount : amount / 2;
+        const confirmMsg = `Are you sure you want to process a ${type} payment of ₹${paymentAmount.toLocaleString()} for ${vendor.name}?`;
+
+        if (window.confirm(confirmMsg)) {
+            try {
+                // Update total amount in backend
+                const newAmount = type === 'full' ? 0 : amount / 2;
+                await vendorService.update(vendor.id, {
+                    ...mapToBackend(vendor),
+                    total_amount: newAmount
+                });
+                alert(`Successfully processed ${type} payment!`);
+                fetchVendors(); // Refresh list
+            } catch (error) {
+                console.error('Error processing payment:', error.message);
+                alert('Failed to process payment.');
+            }
+        }
+    };
+
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this vendor?')) {
             try {
@@ -208,10 +235,22 @@ const Vendors = () => {
                                     </td>
                                     <td style={{ fontSize: 12, color: 'var(--bs-muted)', whiteSpace: 'nowrap' }}>{v.date}</td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: 6 }}>
+                                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                                             <button className="bs-btn-icon bs-btn-icon-view" title="View" onClick={() => setViewVendor(v)}>👁</button>
                                             <button className="bs-btn-icon bs-btn-icon-edit" title="Edit" onClick={() => openEdit(v)}>✏️</button>
                                             <button className="bs-btn-icon bs-btn-icon-delete" title="Delete" onClick={() => handleDelete(v.id)}>🗑</button>
+                                            
+                                            <div className="bs-dropdown">
+                                                <button className="bs-btn-pay">💸 Pay Bill ▾</button>
+                                                <div className="bs-dropdown-content">
+                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'full')}>
+                                                        ✅ Full Payment
+                                                    </div>
+                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'half')}>
+                                                        🌓 Half Payment
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
