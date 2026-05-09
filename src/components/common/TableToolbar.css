@@ -1,0 +1,248 @@
+/* ============================================================================
+   TABLE TOOLBAR - Matches Teachers List Design
+   ============================================================================ */
+
+.toolbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 24px;
+    background: var(--ft-card-bg, #ffffff);
+    border-bottom: 1px solid var(--ft-border-color, #e0e6ed);
+    flex-wrap: wrap;
+}
+
+/* ============================================================================
+   LEFT: Page Title
+   ============================================================================ */
+
+.toolbar-title {
+    flex: 0 0 auto;
+}
+
+.toolbar-title h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ft-text-base, #2d3748);
+    letter-spacing: -0.3px;
+}
+
+/* ============================================================================
+   RIGHT: Control Buttons
+   ============================================================================ */
+
+.toolbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.toolbar-control-item {
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-control-item.date-range {
+    padding: 0 8px;
+}
+
+/* Toolbar Control Buttons */
+.toolbar-control-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--ft-input-bg, #f8f9fa);
+    color: var(--ft-text-color, #2d3748);
+    border: 1px solid var(--ft-border-color, #e0e6ed);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.toolbar-control-btn span {
+    font-weight: 600;
+}
+
+.toolbar-control-btn:hover:not(:disabled) {
+    border-color: var(--ft-border-hover, #cbd5e0);
+    background: var(--ft-bg-hover, #f0f4f8);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.toolbar-control-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.toolbar-control-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--ft-primary-color, #3b82f6);
+}
+
+.toolbar-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Filter Button - Blue Primary Style (like Teachers List) */
+.filter-btn {
+    background: var(--ft-primary-color, #3b82f6);
+    color: #ffffff;
+    border-color: var(--ft-primary-color, #3b82f6);
+}
+
+.filter-btn:hover:not(:disabled) {
+    background: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+/* Columns Button - Icon Only */
+.columns-btn {
+    padding: 8px 10px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+    gap: 0;
+}
+
+/* View Button */
+.view-btn {
+    padding: 8px 10px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+    gap: 0;
+}
+
+/* Sort Button */
+.sort-btn span {
+    display: inline;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+    .toolbar-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        padding: 16px 20px;
+    }
+
+    .toolbar-title {
+        width: 100%;
+    }
+
+    .toolbar-title h2 {
+        font-size: 18px;
+    }
+
+    .toolbar-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .toolbar-header {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .toolbar-title h2 {
+        font-size: 16px;
+    }
+
+    .toolbar-control-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .toolbar-control-btn span {
+        display: none;
+    }
+
+    .sort-btn span {
+        display: none;
+    }
+
+    .columns-btn,
+    .view-btn {
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .toolbar-header {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .toolbar-title h2 {
+        font-size: 14px;
+    }
+
+    .toolbar-controls {
+        width: 100%;
+        gap: 6px;
+    }
+
+    .toolbar-control-btn {
+        padding: 6px 8px;
+        font-size: 11px;
+        border-radius: 4px;
+    }
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+    .toolbar-header {
+        --ft-card-bg: #1f2937;
+        --ft-border-color: #374151;
+        --ft-text-base: #f3f4f6;
+        --ft-text-color: #e5e7eb;
+        --ft-input-bg: #111827;
+        --ft-bg-hover: #374151;
+        --ft-primary-color: #3b82f6;
+    }
+
+    .toolbar-title h2 {
+        color: var(--ft-text-base, #f3f4f6);
+    }
+
+    .toolbar-control-btn {
+        background: var(--ft-input-bg, #111827);
+        color: var(--ft-text-color, #e5e7eb);
+        border-color: var(--ft-border-color, #374151);
+    }
+
+    .toolbar-control-btn:hover:not(:disabled) {
+        background: var(--ft-bg-hover, #374151);
+        border-color: var(--ft-border-color, #4b5563);
+    }
+
+    .filter-btn {
+        background: var(--ft-primary-color, #3b82f6);
+        border-color: var(--ft-primary-color, #3b82f6);
+    }
+
+    .filter-btn:hover:not(:disabled) {
+        background: #2563eb;
+        border-color: #2563eb;
+    }
+}
+

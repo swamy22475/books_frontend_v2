@@ -1,0 +1,353 @@
+/* ─── StockIn.css — Stock In Management Page Styles ─────────────────────── */
+
+/* ── KPI Strip (6 cards side-by-side) ──────────────────────────────────── */
+.si-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+}
+
+.si-kpi-card {
+    min-width: 0;
+}
+
+@media (max-width: 1200px) {
+    .si-kpi-strip {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 700px) {
+    .si-kpi-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ── Status Legend Bar ──────────────────────────────────────────────────── */
+.si-legend-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--bs-text);
+}
+
+.si-legend-title {
+    font-weight: 700;
+    color: var(--bs-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+}
+
+.si-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--bs-text);
+}
+
+/* ── Tab Switcher ──────────────────────────────────────────────────────── */
+.si-tab-row {
+    display: flex;
+    gap: 8px;
+}
+
+.si-tab-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--bs-border);
+    background: var(--bs-card-bg);
+    color: var(--bs-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.si-tab-btn:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+}
+
+.si-tab-active {
+    background: var(--bs-primary);
+    color: #fff !important;
+    border-color: var(--bs-primary) !important;
+}
+
+/* ── Table Rows ─────────────────────────────────────────────────────────── */
+.si-product-row:hover {
+    background: var(--bs-hover, #f4f6fb);
+}
+
+.si-book-name {
+    font-weight: 600;
+    color: var(--bs-text);
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.si-empty-row {
+    text-align: center;
+    padding: 40px !important;
+    color: var(--bs-muted);
+    font-size: 14px;
+}
+
+/* ── Quantity Counts ────────────────────────────────────────────────────── */
+.si-count {
+    display: inline-block;
+    min-width: 42px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.si-count-blue {
+    color: #3d5ee1;
+    background: #eef1fd;
+}
+
+.si-count-green {
+    color: #28c76f;
+    background: #e8faf1;
+}
+
+.si-count-teal {
+    color: #00cfe8;
+    background: #e5f9fc;
+}
+
+.si-count-orange {
+    color: #ff9f43;
+    background: #fff5e6;
+}
+
+.si-count-red {
+    color: #ea5455;
+    background: #fce8e8;
+}
+
+/* ── Progress Bar ───────────────────────────────────────────────────────── */
+.si-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.si-bar-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--bs-border);
+    overflow: hidden;
+}
+
+.si-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(.4, 0, .2, 1);
+}
+
+.si-bar-pct {
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 34px;
+    text-align: right;
+}
+
+/* ── Status Button / Badge ──────────────────────────────────────────────── */
+.si-status-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    border: 1.5px solid transparent;
+    cursor: default;
+    transition: transform 0.12s;
+}
+
+.si-status-btn:hover {
+    transform: scale(1.04);
+}
+
+/* Green — Available (≥ 40%) */
+.si-tag-green {
+    background: #e8faf1;
+    color: #1f9d57;
+    border-color: #28c76f44;
+}
+
+/* Orange — Low Stock (< 30%) */
+.si-tag-orange {
+    background: #fff5e6;
+    color: #df8900;
+    border-color: #ff9f4344;
+}
+
+/* Red — Out of Stock (0%) */
+.si-tag-red {
+    background: #fce8e8;
+    color: #c62828;
+    border-color: #ea545544;
+}
+
+/* ── Status Dots ────────────────────────────────────────────────────────── */
+.si-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.si-dot-green {
+    background: #28c76f;
+    box-shadow: 0 0 0 2px #28c76f33;
+}
+
+.si-dot-orange {
+    background: #ff9f43;
+    box-shadow: 0 0 0 2px #ff9f4333;
+}
+
+.si-dot-red {
+    background: #ea5455;
+    box-shadow: 0 0 0 2px #ea545533;
+}
+
+/* Pulsing dot for out-of-stock attention */
+.si-dot-red {
+    animation: si-pulse-red 1.8s ease-in-out infinite;
+}
+
+@keyframes si-pulse-red {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 2px #ea545533;
+    }
+
+    50% {
+        box-shadow: 0 0 0 5px #ea545522;
+    }
+}
+
+/* ── Footer mini badges ─────────────────────────────────────────────────── */
+.si-status-mini {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* ── Modal preview box ──────────────────────────────────────────────────── */
+.si-preview-box {
+    margin-top: 18px;
+    padding: 16px 18px;
+    background: var(--bs-hover, #f8f9fc);
+    border-radius: 12px;
+    border: 1px solid var(--bs-border);
+}
+
+.si-preview-title {
+    font-size: 13px;
+    color: var(--bs-muted);
+    margin-bottom: 12px;
+}
+
+.si-preview-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.si-preview-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    min-width: 70px;
+}
+
+.si-preview-item span:first-child {
+    font-size: 11px;
+    color: var(--bs-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.si-preview-item strong {
+    font-size: 20px;
+    font-weight: 800;
+}
+
+/* ── Dark-mode overrides ────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+    .si-product-row:hover {
+        background: #1e2337;
+    }
+
+    .si-preview-box {
+        background: #1a1f36;
+    }
+
+    .si-tag-green {
+        background: #1a3327;
+        color: #4ade80;
+        border-color: #28c76f33;
+    }
+
+    .si-tag-orange {
+        background: #332510;
+        color: #fbbf24;
+        border-color: #ff9f4333;
+    }
+
+    .si-tag-red {
+        background: #331515;
+        color: #f87171;
+        border-color: #ea545533;
+    }
+
+    .si-count-blue {
+        color: #818cf8;
+        background: #1e2347;
+    }
+
+    .si-count-green {
+        color: #4ade80;
+        background: #1a3327;
+    }
+
+    .si-count-orange {
+        color: #fbbf24;
+        background: #332510;
+    }
+
+    .si-count-red {
+        color: #f87171;
+        background: #331515;
+    }
+
+    .si-count-teal {
+        color: #22d3ee;
+        background: #0f2a30;
+    }
+}

@@ -1,0 +1,496 @@
+/* ============================================================================
+   FILTER PANEL - Advanced Filter Popover
+   Matches Teachers List filter design
+   ============================================================================ */
+
+.filter-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.filter-panel {
+    position: fixed;
+    background: var(--ft-card-bg, #ffffff);
+    border: 1px solid var(--ft-border-color, #e0e6ed);
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12),
+                0 0 1px rgba(0, 0, 0, 0.04);
+    min-width: 360px;
+    max-width: 400px;
+    max-height: 80vh;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    animation: panelSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+}
+
+@keyframes panelSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.filter-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--ft-border-color, #e0e6ed);
+    background: var(--ft-bg-subtle, #f9fafb);
+    flex-shrink: 0;
+}
+
+.filter-panel-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ft-text-base, #2d3748);
+    letter-spacing: 0.3px;
+}
+
+.filter-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--ft-text-muted, #a0aec0);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.filter-panel-close:hover {
+    background: var(--ft-bg-hover, #f0f4f8);
+    color: var(--ft-text-base, #2d3748);
+}
+
+/* ============================================================================
+   CONTENT - Scrollable
+   ============================================================================ */
+
+.filter-panel-content {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Scrollbar Styling */
+.filter-panel-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filter-panel-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.filter-panel-content::-webkit-scrollbar-thumb {
+    background: var(--ft-border-color, #cbd5e0);
+    border-radius: 3px;
+    opacity: 0.6;
+}
+
+.filter-panel-content::-webkit-scrollbar-thumb:hover {
+    background: var(--ft-border-hover, #a0aec0);
+    opacity: 1;
+}
+
+/* ============================================================================
+   FILTER SECTIONS
+   ============================================================================ */
+
+.filter-section {
+    margin-bottom: 18px;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-section-title {
+    margin: 0 0 12px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ft-text-base, #2d3748);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   COLUMNS GRID
+   ============================================================================ */
+
+.columns-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 8px;
+}
+
+.column-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.column-checkbox:hover {
+    background: var(--ft-bg-hover, #f0f4f8);
+}
+
+.column-checkbox input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--ft-primary-color, #3b82f6);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.column-checkbox input[type="checkbox"]:focus {
+    outline: 2px solid var(--ft-primary-color, #3b82f6);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+.checkbox-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ft-text-color, #4a5568);
+    line-height: 1.4;
+}
+
+/* ============================================================================
+   FILTER OPTIONS (TEXT, SELECT, DATE)
+   ============================================================================ */
+
+.filter-option {
+    margin-bottom: 14px;
+}
+
+.filter-option:last-child {
+    margin-bottom: 0;
+}
+
+.filter-option-label {
+    display: block;
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ft-text-base, #2d3748);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Text Input */
+.filter-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--ft-input-bg, #f8f9fa);
+    border: 1px solid var(--ft-border-color, #e0e6ed);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ft-text-color, #4a5568);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.filter-input::placeholder {
+    color: var(--ft-text-muted, #a0aec0);
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--ft-primary-color, #3b82f6);
+    background: var(--ft-input-bg, #f8f9fa);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Select Dropdown */
+.filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--ft-input-bg, #f8f9fa);
+    border: 1px solid var(--ft-border-color, #e0e6ed);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ft-text-color, #4a5568);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--ft-primary-color, #3b82f6);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-select option {
+    padding: 8px 12px;
+    background: var(--ft-card-bg, #ffffff);
+    color: var(--ft-text-color, #4a5568);
+}
+
+/* Date Range Inputs */
+.date-range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-range-inputs .filter-input {
+    flex: 1;
+}
+
+.date-separator {
+    font-size: 12px;
+    color: var(--ft-text-muted, #a0aec0);
+    white-space: nowrap;
+}
+
+/* ============================================================================
+   FOOTER - Sticky
+   ============================================================================ */
+
+.filter-panel-footer {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--ft-border-color, #e0e6ed);
+    background: var(--ft-bg-subtle, #f9fafb);
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
+.btn-reset,
+.btn-apply {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    border: none;
+}
+
+.btn-reset {
+    background: var(--ft-bg-secondary, #edf2f7);
+    color: var(--ft-text-base, #2d3748);
+    border: 1px solid var(--ft-border-color, #e0e6ed);
+}
+
+.btn-reset:hover {
+    background: var(--ft-bg-hover, #e2e8f0);
+    border-color: var(--ft-border-hover, #cbd5e0);
+}
+
+.btn-reset:active {
+    transform: scale(0.96);
+}
+
+.btn-reset:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn-apply {
+    background: var(--ft-primary-color, #3b82f6);
+    color: #ffffff;
+    border: 1px solid var(--ft-primary-color, #3b82f6);
+}
+
+.btn-apply:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-apply:active {
+    transform: scale(0.96);
+}
+
+.btn-apply:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .filter-panel {
+        position: fixed;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%);
+        min-width: 90vw;
+        max-width: 95vw;
+        max-height: 85vh;
+        will-change: transform, opacity;
+    }
+
+    @keyframes panelSlideIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -55%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    .columns-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-panel {
+        min-width: 95vw;
+        max-height: 90vh;
+    }
+
+    .filter-panel-header {
+        padding: 12px 16px;
+    }
+
+    .filter-panel-header h3 {
+        font-size: 14px;
+    }
+
+    .filter-panel-content {
+        padding: 12px 16px;
+    }
+
+    .filter-section-title {
+        font-size: 11px;
+    }
+
+    .filter-input,
+    .filter-select {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .btn-reset,
+    .btn-apply {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    /* Override inline transform for centered layout */
+    @supports (inset: 0) {
+        .filter-panel {
+            inset: auto 50% auto auto;
+            transform: translate(-50%, -50%);
+        }
+    }
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+    .filter-panel {
+        --ft-card-bg: #1f2937;
+        --ft-border-color: #374151;
+        --ft-bg-subtle: #111827;
+        --ft-text-base: #f3f4f6;
+        --ft-text-color: #e5e7eb;
+        --ft-text-muted: #9ca3af;
+        --ft-input-bg: #111827;
+        --ft-bg-hover: #374151;
+        --ft-primary-color: #3b82f6;
+    }
+
+    .filter-panel {
+        background: var(--ft-card-bg, #1f2937);
+        border-color: var(--ft-border-color, #374151);
+    }
+
+    .filter-panel-header {
+        background: var(--ft-bg-subtle, #111827);
+        border-bottom-color: var(--ft-border-color, #374151);
+    }
+
+    .filter-panel-header h3 {
+        color: var(--ft-text-base, #f3f4f6);
+    }
+
+    .filter-panel-close:hover {
+        background: var(--ft-bg-hover, #374151);
+        color: var(--ft-text-base, #f3f4f6);
+    }
+
+    .column-checkbox:hover {
+        background: var(--ft-bg-hover, #374151);
+    }
+
+    .checkbox-label {
+        color: var(--ft-text-color, #e5e7eb);
+    }
+
+    .filter-input,
+    .filter-select {
+        background: var(--ft-input-bg, #111827);
+        color: var(--ft-text-color, #e5e7eb);
+        border-color: var(--ft-border-color, #374151);
+    }
+
+    .filter-input::placeholder {
+        color: var(--ft-text-muted, #9ca3af);
+    }
+
+    .filter-select option {
+        background: var(--ft-card-bg, #1f2937);
+        color: var(--ft-text-color, #e5e7eb);
+    }
+
+    .filter-option-label,
+    .filter-section-title {
+        color: var(--ft-text-base, #f3f4f6);
+    }
+
+    .filter-panel-footer {
+        background: var(--ft-bg-subtle, #111827);
+        border-top-color: var(--ft-border-color, #374151);
+    }
+
+    .btn-reset {
+        background: var(--ft-bg-secondary, #374151);
+        color: var(--ft-text-color, #e5e7eb);
+        border-color: var(--ft-border-color, #4b5563);
+    }
+
+    .btn-reset:hover {
+        background: var(--ft-bg-hover, #4b5563);
+    }
+}

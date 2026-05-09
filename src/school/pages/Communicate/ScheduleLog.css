@@ -1,0 +1,283 @@
+/* ScheduleLog.css - Premium Admin Theme */
+
+.schedule-log-container {
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+}
+
+/* Card Styling */
+.schedule-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.schedule-header {
+    padding: 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+}
+
+.schedule-search-wrapper {
+    position: relative;
+    width: 300px;
+}
+
+.schedule-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.schedule-search-input {
+    width: 100%;
+    padding: 10px 12px 10px 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #334155;
+    transition: all 0.2s;
+    background-color: #f8fafc;
+}
+
+.schedule-search-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    /* Indigo-500 */
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Table Styling */
+.schedule-table-container {
+    overflow-x: auto;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.schedule-table thead th {
+    background: #f8fafc;
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.schedule-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.schedule-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.schedule-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.schedule-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Specific Column Styles */
+.col-title-message {
+    max-width: 350px;
+}
+
+.log-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.log-message {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.date-info {
+    font-size: 13px;
+    color: #475569;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.date-label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin-right: 6px;
+}
+
+/* Checkbox / Badge Styles */
+.channel-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+}
+
+.badge-email {
+    background-color: #eff6ff;
+    color: #3b82f6;
+    border-color: #dbeafe;
+}
+
+.badge-sms {
+    background-color: #fff7ed;
+    color: #f97316;
+    border-color: #ffedd5;
+}
+
+.badge-whatsapp {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    /* Green-600 */
+    border-color: #dcfce7;
+}
+
+.recipient-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+    background-color: #f1f5f9;
+    margin-right: 4px;
+}
+
+.recipient-badge.active {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+    /* Indigo */
+}
+
+/* Action Buttons */
+.action-btn-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.btn-view {
+    color: #0ea5e9;
+    /* Sky-500 */
+    background: #f0f9ff;
+    border-color: #e0f2fe;
+}
+
+.btn-view:hover {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.btn-edit {
+    color: #f59e0b;
+    /* Amber-500 */
+    background: #fffbeb;
+    border-color: #fef3c7;
+}
+
+.btn-edit:hover {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.btn-delete {
+    color: #ef4444;
+    /* Red-500 */
+    background: #fef2f2;
+    border-color: #fee2e2;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Modal Styles override/custom needed here */
+.modal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.modal-detail-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.modal-detail-value {
+    font-size: 14px;
+    color: #1e293b;
+    font-weight: 600;
+    text-align: right;
+}
+
+.status-scheduled {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #0ea5e9;
+    font-size: 12px;
+    font-weight: 500;
+    background: #f0f9ff;
+    padding: 2px 8px;
+    border-radius: 12px;
+}

@@ -1,0 +1,107 @@
+
+
+export let LeadData = [
+{
+  Id: 1,
+  name: 'Rajesh Kumar',
+  email: 'rajesh.kumar@example.com',
+  phone: '+91 98765 43210',
+  company: 'Sunrise Public School',
+  source: 'Website',
+  status: 'New',
+  notes: 'Interested in premium plan for 500+ students',
+  assignedTo: 'Liam',
+  createdDate: new Date('2026-02-10'),
+  deleted: false
+},
+{
+  Id: 2,
+  name: 'Priya Sharma',
+  email: 'priya.sharma@example.com',
+  phone: '+91 87654 32109',
+  company: 'Greenfield Academy',
+  source: 'Referral',
+  status: 'Contacted',
+  notes: 'Follow up scheduled for next week',
+  assignedTo: 'Steve',
+  createdDate: new Date('2026-02-08'),
+  deleted: false
+},
+{
+  Id: 3,
+  name: 'Amit Patel',
+  email: 'amit.patel@example.com',
+  phone: '+91 76543 21098',
+  company: 'Modern International School',
+  source: 'Social Media',
+  status: 'Qualified',
+  notes: 'Ready for demo, needs multi-branch support',
+  assignedTo: 'Jack',
+  createdDate: new Date('2026-02-05'),
+  deleted: false
+},
+{
+  Id: 4,
+  name: 'Sneha Reddy',
+  email: 'sneha.reddy@example.com',
+  phone: '+91 65432 10987',
+  company: 'Little Stars Montessori',
+  source: 'Email Campaign',
+  status: 'Converted',
+  notes: 'Signed up for basic plan',
+  assignedTo: 'Liam',
+  createdDate: new Date('2026-01-28'),
+  deleted: false
+},
+{
+  Id: 5,
+  name: 'Vikram Singh',
+  email: 'vikram.singh@example.com',
+  phone: '+91 54321 09876',
+  company: 'Delhi Public School',
+  source: 'Cold Call',
+  status: 'Lost',
+  notes: 'Budget constraints, might reconsider next quarter',
+  assignedTo: 'Steve',
+  createdDate: new Date('2026-01-25'),
+  deleted: false
+},
+{
+  Id: 6,
+  name: 'Ananya Gupta',
+  email: 'ananya.gupta@example.com',
+  phone: '+91 43210 98765',
+  company: 'Cambridge School',
+  source: 'Website',
+  status: 'New',
+  notes: 'Submitted inquiry form, needs callback',
+  assignedTo: 'Jack',
+  createdDate: new Date('2026-02-14'),
+  deleted: false
+},
+{
+  Id: 7,
+  name: 'Rahul Verma',
+  email: 'rahul.verma@example.com',
+  phone: '+91 32109 87654',
+  company: 'Oakridge International',
+  source: 'Referral',
+  status: 'Contacted',
+  notes: 'Interested in fee management module',
+  assignedTo: 'John',
+  createdDate: new Date('2026-02-12'),
+  deleted: false
+},
+{
+  Id: 8,
+  name: 'Meera Nair',
+  email: 'meera.nair@example.com',
+  phone: '+91 21098 76543',
+  company: 'St. Josephs School',
+  source: 'Social Media',
+  status: 'Qualified',
+  notes: 'Wants full ERP suite, 3 branches',
+  assignedTo: 'Liam',
+  createdDate: new Date('2026-02-07'),
+  deleted: false
+}];

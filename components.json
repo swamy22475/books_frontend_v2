@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/superAdmin/css/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "src/superAdmin/components",
+    "utils": "src/superAdmin/lib/utils",
+    "ui": "src/superAdmin/components/ui",
+    "lib": "src/superAdmin/lib",
+    "hooks": "src/superAdmin/hooks"
+  }
+}

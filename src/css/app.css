@@ -1,0 +1,83 @@
+.feature-card img {
+  width: 100%;
+  object-fit: cover;
+}
+
+.card-hover {
+  transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+}
+
+.card-hover:hover img {
+  transform: scale(1.09);
+  transition: transform .2s;
+}
+
+.mySwiper .swiper-wrapper {
+    transition-timing-function: linear !important;
+    margin: 0 auto !important;
+}
+
+/* ============================================================================
+   DROPDOWN & FLOATING ELEMENT OVERFLOW MANAGEMENT
+   Ensures FilterDropdown and similar floating elements are not clipped
+   ============================================================================ */
+
+/* Filter bar and controls - allow dropdowns to overflow */
+.filter-bar {
+  overflow: visible;
+  position: relative;
+}
+
+.filter-controls {
+  overflow: visible;
+  position: relative;
+}
+
+.controls-section {
+  overflow: visible;
+  position: relative;
+}
+
+/* Card containers - prevent clipping of floating elements */
+.card {
+  overflow: visible;
+}
+
+.card.table-card,
+.table-card,
+.soft-card {
+  overflow: visible;
+}
+
+/* Table wrapper - allow dropdown overflow */
+.table-wrap,
+.table-wrap-container {
+  overflow: auto; /* Scrollable but won't clip fixed position elements */
+}
+
+/* Toolbar - allow floating controls */
+.table-toolbar {
+  overflow: visible;
+  position: relative;
+}
+
+/* Page container - ensure dropdowns can overflow */
+.page-container,
+.container-fluid,
+.page-wrapper {
+  overflow: visible;
+}
+
+/* Specific overflow fixes for StudentList and similar pages */
+.student-list-container,
+.fee-management-container,
+.teacher-list-container,
+.attendance-container {
+  overflow: visible;
+}
+
+/* Modal and dialog overflow - allow content dropdowns */
+.modal-content,
+.dialog-content {
+  overflow: visible;
+}

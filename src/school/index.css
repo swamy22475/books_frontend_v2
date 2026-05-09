@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* Preskool Theme - Exact Match */
+@theme {
+  /* Brand Colors */
+  --color-brand-blue: #3D5EE1;
+  --color-brand-orange: #FF9B44;
+  --color-brand-purple: #6E62E5;
+
+  /* Background Colors - Mapped to Global Theme */
+  --color-bg-main: var(--bg-main);
+  --color-card-white: var(--bg-card);
+
+  /* Text Colors - Mapped to Global Theme */
+  --color-text-main: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+
+  /* Status Colors */
+  --color-success-light: rgba(26, 179, 148, 0.1);
+  --color-danger-light: rgba(232, 70, 70, 0.1);
+  --color-success: #1AB394;
+  --color-danger: #E84646;
+
+  /* Dark Navy */
+  --color-dark-navy: #1E293B;
+
+  /* Font */
+  --font-family-poppins: 'Poppins', sans-serif;
+}
+
+@layer base {
+  :root {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}
+
+@layer components {
+
+  /* Card with exact Preskool shadow */
+  .card {
+    background-color: var(--bg-card);
+    border-radius: 10px;
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+  }
+
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  /* Ghost Button for profile card */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Primary Button */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    background-color: #3D5EE1;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .btn-primary:hover {
+    background-color: #2E4BC9;
+  }
+
+  /* Status Pills */
+  .pill-success {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background-color: #E1F3E9;
+    color: #1AB394;
+  }
+
+  .pill-danger {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    background-color: #FFF0F0;
+    color: #E84646;
+  }
+
+  /* Progress bar - 8px height matching Preskool */
+  .progress-thick {
+    height: 8px;
+    background-color: var(--bg-main);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-thick-bar {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+  }
+}
+
+/* Scrollbar Styling */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: var(--bg-main);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}

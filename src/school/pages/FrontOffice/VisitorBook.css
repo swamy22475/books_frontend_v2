@@ -1,0 +1,301 @@
+/* Visitor Book Specific Animations */
+
+.visitor-book-page {
+    animation: fadeInPage 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Staggered Row Animation */
+.table-row-v2 {
+    animation: slideInRow 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes slideInRow {
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Loop for staggered effect - supporting up to 10 initial rows */
+.table-row-v2:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.table-row-v2:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.table-row-v2:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.table-row-v2:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.table-row-v2:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.table-row-v2:nth-child(6) {
+    animation-delay: 0.35s;
+}
+
+.table-row-v2:nth-child(7) {
+    animation-delay: 0.4s;
+}
+
+.table-row-v2:nth-child(8) {
+    animation-delay: 0.45s;
+}
+
+.table-row-v2:nth-child(9) {
+    animation-delay: 0.5s;
+}
+
+.table-row-v2:nth-child(10) {
+    animation-delay: 0.55s;
+}
+
+/* Modal specific animations */
+.modal-overlay {
+    animation: fadeInOverlay 0.3s ease;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0);
+    }
+
+    to {
+        opacity: 1;
+        backdrop-filter: blur(4px);
+    }
+}
+
+.view-modal {
+    animation: modalSpring 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes modalSpring {
+    0% {
+        transform: scale(0.7) translateY(100px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Input focusing effect */
+.search-input-pill {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.search-input-pill:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -10px rgba(61, 94, 225, 0.4);
+}
+
+/* Status text pulsing */
+.status-text.active {
+    position: relative;
+    overflow: hidden;
+}
+
+.status-text.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        left: 200%;
+    }
+}
+
+/* Table Header Customization */
+.premium-table-v2 thead tr {
+    background: #eef2ff !important;
+}
+
+.premium-table-v2 thead th {
+    color: #4338ca !important;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 20px 15px !important;
+    border-bottom: none !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+}
+
+.premium-table-v2 thead th:first-child {
+    border-radius: 12px 0 0 0;
+}
+
+.premium-table-v2 thead th:last-child {
+    border-radius: 0 12px 0 0;
+}
+
+.premium-table-v2 td {
+    padding: 20px 24px !important;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+/* Hover effect for table rows to match new header */
+.table-row-v2:hover {
+    background: #f8f7ff !important;
+}
+
+/* Hover effects for buttons */
+.btn-primary:hover {
+    transform: scale(1.02) translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.action-icon-btn:hover {
+    transform: rotate(8deg) scale(1.1);
+}
+
+/* Modal Form Animations */
+.form-group-premium {
+    opacity: 0;
+    animation: slideUpForm 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideUpForm {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Staggered Form Groups */
+.form-group-premium:nth-child(1) {
+    animation-delay: 0.15s;
+}
+
+.form-group-premium:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.form-group-premium:nth-child(3) {
+    animation-delay: 0.25s;
+}
+
+.form-group-premium:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.form-group-premium:nth-child(5) {
+    animation-delay: 0.35s;
+}
+
+.form-group-premium:nth-child(6) {
+    animation-delay: 0.4s;
+}
+
+.form-group-premium:nth-child(7) {
+    animation-delay: 0.45s;
+}
+
+.form-group-premium:nth-child(8) {
+    animation-delay: 0.5s;
+}
+
+.form-group-premium:nth-child(9) {
+    animation-delay: 0.55s;
+}
+
+/* Enhanced Modal Styles */
+.detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    transition: color 0.3s;
+}
+
+.form-group-premium:focus-within .detail-label {
+    color: #7367f0;
+}
+
+.view-modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: #7367f0 #f1f5f9;
+}
+
+/* Success Checkmark Pop */
+@keyframes successPop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-icon-pop {
+    animation: successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* File Upload Hover */
+.file-upload-area {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: #7367f0 !important;
+    background: #f5f3ff !important;
+    transform: scale(1.01);
+}
+
+.file-upload-area:hover svg {
+    color: #7367f0;
+    transform: translateY(-3px);
+    transition: all 0.3s;
+}

@@ -1,0 +1,61 @@
+/* ═══════════════════════════════════════════════════════════════
+   SEARCH DUE FEES — PREMIUM DESIGN
+   ═══════════════════════════════════════════════════════════════ */
+
+.due-page {
+    padding: 2rem;
+    background: #f8fafc;
+    min-height: 100vh;
+    font-family: 'Outfit', sans-serif;
+}
+
+.due-header {
+    margin-bottom: 2.5rem;
+}
+
+.due-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+
+.due-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.due-card {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.due-stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.due-stat-val {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.due-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}

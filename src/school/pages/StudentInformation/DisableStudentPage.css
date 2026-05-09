@@ -1,0 +1,481 @@
+/* Disable Student Page Theme Variables */
+@import '../../../styles/shared-table.css';
+
+/* Disable Student Page Theme Variables */
+:root {
+  --dsp-bg-body: #ffffff;
+  --dsp-card-bg: #ffffff;
+  --dsp-text-color: #1f2937;
+  --dsp-text-muted: #6b7280;
+  --dsp-border-color: #e5e7eb;
+  --dsp-primary-color: #3d5ee1;
+  --dsp-primary-dark: #2d4acc;
+  --dsp-primary-light: #5570ea;
+  --dsp-warning-color: #dc2626;
+  --dsp-warning-light: #fee2e2;
+  --dsp-success-color: #10b981;
+  --dsp-gray-light: #f3f4f6;
+  --dsp-gray-lighter: #fafbfc;
+}
+
+[data-theme="dark"] {
+  --dsp-bg-body: #1f2937;
+  --dsp-card-bg: #374151;
+  --dsp-text-color: #f3f4f6;
+  --dsp-text-muted: #d1d5db;
+  --dsp-border-color: #4b5563;
+  --dsp-warning-light: #7f1d1d;
+}
+
+/* Main Page Container */
+.disable-student-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: var(--dsp-bg-body);
+  padding: 0;
+}
+
+.disable-student-page .container {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Page Header Section */
+.disable-student-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 2px;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+
+.disable-student-page .page-title {
+  flex: 1;
+}
+
+.back-button-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.page-title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.warning-icon {
+  color: var(--dsp-warning-color);
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.disable-student-page .page-title h4 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--dsp-text-color);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.disable-student-page .breadcrumb {
+  font-size: 13px;
+  color: var(--dsp-text-muted);
+  margin-top: 8px;
+}
+
+.disable-student-page .breadcrumb .current {
+  color: var(--dsp-primary-color);
+  font-weight: 500;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Card Container */
+.disable-card {
+  padding: 24px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--dsp-card-bg);
+  border: 1px solid var(--dsp-border-color);
+  box-shadow: 0 10px 30px rgba(165, 175, 197, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Student Info Pill */
+.student-info-pill {
+  background: var(--dsp-gray-lighter);
+  border: 1px solid var(--dsp-border-color);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.student-info-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.student-avatar,
+.student-avatar-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--dsp-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--dsp-border-color);
+  overflow: hidden;
+}
+
+.student-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.student-avatar-placeholder {
+  background: var(--dsp-primary-color);
+  color: white;
+}
+
+.student-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.student-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dsp-text-color);
+}
+
+.student-meta {
+  font-size: 12px;
+  color: var(--dsp-text-muted);
+}
+
+/* Helper Text */
+.disable-helper {
+  background: var(--dsp-warning-light);
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: -8px;
+}
+
+.disable-helper p {
+  margin: 0;
+  font-size: 13px;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .disable-helper {
+  background: #7f1d1d;
+  border-color: #991b1b;
+}
+
+[data-theme="dark"] .disable-helper p {
+  color: #fecaca;
+}
+
+/* Reason Selection Section */
+.disable-reasons-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: -4px;
+}
+
+.section-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dsp-text-color);
+  margin: 0;
+}
+
+/* Reasons Grid - 2 columns on desktop, 1 on mobile */
+.reasons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* Reason Option (Radio Button) */
+.reason-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 2px solid var(--dsp-border-color);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.reason-option:hover {
+  border-color: var(--dsp-primary-color);
+  background: linear-gradient(135deg, var(--dsp-primary-color), var(--dsp-primary-light));
+  background-clip: padding-box;
+  border-color: var(--dsp-primary-color);
+}
+
+.reason-option.selected {
+  border-color: var(--dsp-primary-color);
+  background: linear-gradient(135deg, rgba(61, 94, 225, 0.08), rgba(85, 112, 234, 0.08));
+}
+
+.reason-option input[type="radio"] {
+  flex-shrink: 0;
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--dsp-primary-color);
+}
+
+.reason-text {
+  font-size: 13px;
+  color: var(--dsp-text-color);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.reason-option:hover .reason-text {
+  color: white;
+}
+
+/* Disable Footer (Action Buttons) */
+.disable-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--dsp-border-color);
+  margin-top: 4px;
+}
+
+/* Button Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--dsp-primary-color);
+  color: white;
+  box-shadow: 0 2px 8px rgba(61, 94, 225, 0.15);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--dsp-primary-dark);
+  box-shadow: 0 4px 16px rgba(61, 94, 225, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(61, 94, 225, 0.15);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--dsp-text-color);
+  border: 1.5px solid var(--dsp-border-color);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--dsp-gray-light);
+  border-color: var(--dsp-text-muted);
+}
+
+.btn-outline:active:not(:disabled) {
+  background-color: var(--dsp-border-color);
+  border-color: var(--dsp-text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .disable-student-page {
+    padding: 24px 16px;
+  }
+
+  .disable-student-page .page-header {
+    flex-direction: column;
+    margin-bottom: 24px;
+  }
+
+  .disable-card {
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .disable-student-page .page-title h4 {
+    font-size: 1.5rem;
+  }
+
+  .reasons-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .disable-footer {
+    gap: 10px;
+  }
+
+  .btn {
+    flex: 1;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .disable-student-page {
+    padding: 20px 16px;
+  }
+
+  .back-button-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .page-title-with-icon {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .warning-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .disable-student-page .page-title h4 {
+    font-size: 1.25rem;
+  }
+
+  .student-info-pill {
+    padding: 12px;
+  }
+
+  .student-avatar,
+  .student-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+  }
+
+  .disable-card {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .disable-footer {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .reasons-grid {
+    gap: 10px;
+  }
+
+  .reason-option {
+    padding: 10px 12px;
+  }
+
+  .reason-text {
+    font-size: 12px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .disable-student-page .page-header-actions {
+    display: none;
+  }
+
+  .back-button-wrapper button {
+    display: none;
+  }
+
+  .disable-footer {
+    display: none;
+  }
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .disable-card {
+  background: var(--dsp-card-bg);
+  border-color: var(--dsp-border-color);
+}
+
+[data-theme="dark"] .student-info-pill {
+  background: var(--dsp-gray-lighter);
+  border-color: var(--dsp-border-color);
+}
+
+[data-theme="dark"] .reason-option {
+  border-color: var(--dsp-border-color);
+}
+
+[data-theme="dark"] .reason-option:hover {
+  background: linear-gradient(135deg, var(--dsp-primary-color), var(--dsp-primary-light));
+}
+
+[data-theme="dark"] .reason-option.selected {
+  background: linear-gradient(135deg, rgba(61, 94, 225, 0.15), rgba(85, 112, 234, 0.15));
+  border-color: var(--dsp-primary-color);
+}
+
+[data-theme="dark"] .btn-outline {
+  color: var(--dsp-text-color);
+  border-color: var(--dsp-border-color);
+}
+
+[data-theme="dark"] .btn-outline:hover:not(:disabled) {
+  background-color: var(--dsp-border-color);
+  border-color: var(--dsp-text-muted);
+}

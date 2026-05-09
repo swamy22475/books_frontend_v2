@@ -1,0 +1,290 @@
+/* Shared Table UI - extracted from Finance (FeeTypes.css)
+   Use this to unify table UI across modules (student tables included)
+*/
+
+:root {
+  --ft-bg-body: #ffffff;
+  --ft-card-bg: #ffffff;
+  --ft-text-color: #333448;
+  --ft-text-muted: #6e6b7b;
+  --ft-text-light: #b5b5c3;
+  --ft-border-color: #e9ecef;
+  --ft-input-bg: #ffffff;
+  --ft-primary-color: #3d5ee1;
+  --ft-primary-dark: #2b4fc4;
+  --ft-table-header-bg: linear-gradient(90deg, #3d5ee1, #2b4fc4);
+  --ft-table-hover-bg: rgba(61, 94, 225, 0.03);
+  --ft-badge-active: #E6FFFA;
+  --ft-badge-active-text: #0F766E;
+  --ft-badge-inactive: #FFF5F5;
+  --ft-badge-inactive-text: #C53030;
+  --ft-icon-view: #059669;
+  --ft-icon-view-bg: rgba(5, 150, 105, 0.06);
+  --ft-icon-edit: #2563EB;
+  --ft-icon-edit-bg: rgba(37, 99, 235, 0.06);
+  --ft-icon-delete: #F59E0B;
+  --ft-icon-delete-bg: rgba(245, 158, 11, 0.06);
+  --ft-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --ft-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] {
+  /* Prefer global layout tokens when available to match sidebar/header */
+  --ft-bg-body: var(--bg-body, linear-gradient(180deg,#0f172a 0%,#111827 50%,#020617 100%));
+  --ft-card-bg: var(--card-bg, #0b1220);
+  --ft-text-color: var(--text-color, #e5e7eb);
+  --ft-text-muted: var(--text-muted, #9ca3af);
+  --ft-text-light: var(--text-light, #6b7280);
+  --ft-border-color: var(--border-color, rgba(255,255,255,0.04));
+  --ft-input-bg: var(--input-bg, rgba(255,255,255,0.02));
+  --ft-primary-color: var(--primary-color, #60a5fa);
+  --ft-primary-dark: var(--primary-dark, #3b82f6);
+  --ft-table-header-bg: linear-gradient(90deg,var(--primary-color, #1e3a8a),var(--primary-dark, #3b82f6));
+  --ft-table-hover-bg: rgba(96,165,250,0.06);
+  --ft-table-row-alt: rgba(255,255,255,0.01);
+  --ft-placeholder-color: rgba(229,231,235,0.6);
+  --ft-badge-active: var(--badge-success, #064e3b);
+  --ft-badge-active-text: var(--badge-success-text, #6ee7b7);
+  --ft-badge-inactive: var(--badge-danger, #7c2d12);
+  --ft-badge-inactive-text: var(--badge-danger-text, #fb7185);
+  --ft-icon-view: var(--icon-view, #10b981);
+  --ft-icon-view-bg: rgba(16,185,129,0.12);
+  --ft-icon-edit: var(--icon-edit, #60a5fa);
+  --ft-icon-edit-bg: rgba(96,165,250,0.12);
+  --ft-icon-delete: var(--icon-disable, #f59e0b);
+  --ft-icon-delete-bg: rgba(245,158,11,0.12);
+  --ft-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* Strong dark-mode table polish to match Finance Fee Types */
+[data-theme="dark"] .card.table-card,
+[data-theme="dark"] .card.soft-card,
+[data-theme="dark"] .table-card {
+  background: #0b1220; /* container background */
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,0.12); /* soft border */
+}
+
+[data-theme="dark"] .fee-types-table thead,
+[data-theme="dark"] .students-table thead,
+[data-theme="dark"] .records-table thead,
+[data-theme="dark"] .qa-table thead,
+[data-theme="dark"] .bulk-edit-table thead {
+  background: linear-gradient(135deg,#1e3a8a,#2563eb); /* requested header gradient */
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(148,163,184,0.15);
+}
+
+[data-theme="dark"] .fee-types-table tbody tr,
+[data-theme="dark"] .students-table tbody tr,
+[data-theme="dark"] .records-table tbody tr,
+[data-theme="dark"] .qa-table tbody tr,
+[data-theme="dark"] .bulk-edit-table tbody tr {
+  background: transparent; /* keep rows transparent */
+  border-bottom: 1px solid rgba(148,163,184,0.08);
+}
+
+[data-theme="dark"] .fee-types-table tbody tr:hover,
+[data-theme="dark"] .students-table tbody tr:hover,
+[data-theme="dark"] .records-table tbody tr:hover,
+[data-theme="dark"] .qa-table tbody tr:hover,
+[data-theme="dark"] .bulk-edit-table tbody tr:hover {
+  background: rgba(59,130,246,0.08); /* hover background */
+}
+
+[data-theme="dark"] .fee-types-table thead th,
+[data-theme="dark"] .students-table thead th,
+[data-theme="dark"] .records-table thead th,
+[data-theme="dark"] .qa-table thead th,
+[data-theme="dark"] .bulk-edit-table thead th,
+[data-theme="dark"] .fee-types-table tbody td,
+[data-theme="dark"] .students-table tbody td,
+[data-theme="dark"] .records-table tbody td,
+[data-theme="dark"] .qa-table tbody td,
+[data-theme="dark"] .bulk-edit-table tbody td {
+  padding: 12px 14px; /* match requested cell padding in dark only */
+  color: #e5e7eb; /* primary text */
+}
+
+[data-theme="dark"] .fee-types-table tbody td .muted,
+[data-theme="dark"] .students-table tbody td .muted,
+[data-theme="dark"] .fee-types-table tbody td .desc-cell,
+[data-theme="dark"] .students-table tbody td .desc-cell {
+  color: #94a3b8; /* secondary text */
+}
+
+/* Checkbox dark styling */
+[data-theme="dark"] input[type="checkbox"] {
+  width:16px; height:16px; cursor:pointer;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(148,163,184,0.12);
+  border-radius:4px;
+  appearance: none;
+  -webkit-appearance: none;
+  display:inline-block; vertical-align:middle; position:relative;
+}
+[data-theme="dark"] input[type="checkbox"]:checked {
+  background: linear-gradient(180deg, rgba(37,99,235,0.14), rgba(59,130,246,0.14));
+  border-color: rgba(37,99,235,0.6);
+  box-shadow: 0 4px 14px rgba(59,130,246,0.12) inset;
+}
+[data-theme="dark"] input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute; left:3px; top:1px; width:8px; height:12px; border:2px solid white; border-top:0; border-left:0; transform: rotate(45deg);
+}
+
+/* Action buttons as soft pills with intent colors and hover glow */
+[data-theme="dark"] .icon-btn { border-radius:999px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; background: transparent; color: #94a3b8 }
+[data-theme="dark"] .view-btn { background: rgba(16,185,129,0.08); color: #10b981 }
+[data-theme="dark"] .edit-btn { background: rgba(37,99,235,0.08); color: #2563EB }
+[data-theme="dark"] .delete-btn, [data-theme="dark"] .disable-btn { background: rgba(245,158,11,0.08); color: #f59e0b }
+[data-theme="dark"] .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59,130,246,0.08) }
+
+/* Specific hover glows per intent */
+[data-theme="dark"] .view-btn:hover { box-shadow: 0 8px 30px rgba(16,185,129,0.12) }
+[data-theme="dark"] .edit-btn:hover { box-shadow: 0 8px 30px rgba(37,99,235,0.12) }
+[data-theme="dark"] .delete-btn:hover, [data-theme="dark"] .disable-btn:hover { box-shadow: 0 8px 30px rgba(245,158,11,0.12) }
+
+/* Search / Export toolbar buttons in dark */
+[data-theme="dark"] .toolbar-btn {
+  background: rgba(30,41,59,0.6);
+  border: 1px solid rgba(148,163,184,0.12);
+  color: #e5e7eb;
+}
+[data-theme="dark"] .toolbar-btn:hover:not(:disabled) { box-shadow: 0 10px 30px rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.18); color: #60a5fa }
+
+/* Ensure table header text contrast */
+[data-theme="dark"] .fee-types-table thead th,
+[data-theme="dark"] .students-table thead th { color: #e5e7eb }
+
+
+/* Generic card for table wrappers */
+.card.table-card {
+  background: var(--ft-card-bg);
+  border: 1px solid var(--ft-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--ft-shadow);
+  transition: all 0.3s ease;
+}
+
+.table-toolbar, .table-toolbar-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ft-border-color);
+  background: var(--ft-card-bg);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.toolbar-actions { display:flex; gap:10px; flex-wrap:wrap }
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--ft-border-color);
+  border-radius: 6px;
+  background: var(--ft-input-bg);
+  color: var(--ft-text-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  border-color: var(--ft-primary-color);
+  color: var(--ft-primary-color);
+  background: rgba(61, 94, 225, 0.05);
+}
+
+.table-stats { font-size:13px; color:var(--ft-text-muted); padding:12px 16px }
+
+.search-bar, .toolbar-search { display:flex; align-items:center; gap:10px; background:var(--ft-input-bg); border:1px solid var(--ft-border-color); border-radius:6px; padding:8px 12px; transition: all 0.2s ease; color:var(--ft-text-muted); flex:1; max-width:300px }
+.search-bar:focus-within, .toolbar-search:focus-within { border-color:var(--ft-primary-color); box-shadow:0 0 0 4px rgba(59,130,246,0.12) }
+.search-input, .search-input-field { flex:1; border:none; background:transparent; color:var(--ft-text-color); font-size:13px; outline:none; padding:0 }
+.search-input::placeholder, .search-input-field::placeholder { color:var(--ft-placeholder-color) }
+
+.table-wrap { overflow-x:auto; max-width:100% }
+
+/* Apply unified table header & rows to common table classnames used across student module */
+.fee-types-table thead,
+.students-table thead,
+.records-table thead,
+.qa-table thead,
+.bulk-edit-table thead {
+  background: var(--ft-table-header-bg);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.fee-types-table, .students-table, .records-table, .qa-table, .bulk-edit-table {
+  width:100%; border-collapse:collapse; font-size:13px; color:var(--ft-text-color)
+}
+
+.fee-types-table thead th, .students-table thead th, .records-table thead th, .qa-table thead th, .bulk-edit-table thead th {
+  padding:14px 16px; text-align:left; font-weight:600; letter-spacing:0.3px; white-space:nowrap
+}
+
+.fee-types-table tbody tr, .students-table tbody tr, .records-table tbody tr, .qa-table tbody tr, .bulk-edit-table tbody tr { border-bottom:1px solid var(--ft-border-color); transition: all 0.2s ease }
+.fee-types-table tbody tr:nth-child(even), .students-table tbody tr:nth-child(even), .records-table tbody tr:nth-child(even), .qa-table tbody tr:nth-child(even), .bulk-edit-table tbody tr:nth-child(even) { background: var(--ft-table-row-alt) }
+.fee-types-table tbody tr:hover, .students-table tbody tr:hover, .records-table tbody tr:hover, .qa-table tbody tr:hover, .bulk-edit-table tbody tr:hover { background-color: var(--ft-table-hover-bg) }
+
+.fee-types-table tbody td, .students-table tbody td, .records-table tbody td, .qa-table tbody td, .bulk-edit-table tbody td { padding:14px 16px; vertical-align:middle }
+
+/* Checkbox styling */
+input[type="checkbox"] { width:16px; height:16px; cursor:pointer; accent-color: var(--ft-primary-color) }
+
+/* Status badge */
+.status-badge, .badge { display:inline-block; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600; text-align:center; min-width:80px }
+.status-active, .badge-success { background: var(--ft-badge-active); color: var(--ft-badge-active-text) }
+.status-inactive, .badge-danger { background: var(--ft-badge-inactive); color: var(--ft-badge-inactive-text) }
+
+/* Action icons */
+.action-icons, .action-icons { display:flex; justify-content:center; gap:8px }
+.icon-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; padding:0; border:none; background:transparent; cursor:pointer; border-radius:999px; color:var(--ft-text-muted); transition: all .2s ease }
+.icon-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.06) }
+.view-btn { color: var(--ft-icon-view); background: var(--ft-icon-view-bg); border-radius:999px }
+.edit-btn { color: var(--ft-icon-edit); background: var(--ft-icon-edit-bg); border-radius:999px }
+.delete-btn { color: var(--ft-icon-delete); background: var(--ft-icon-delete-bg); border-radius:999px }
+
+/* Dark-theme specific button/glass effects */
+[data-theme="dark"] .toolbar-btn { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid var(--ft-border-color); color:var(--ft-text-color); box-shadow: 0 4px 16px rgba(2,6,23,0.6) }
+[data-theme="dark"] .toolbar-btn:hover:not(:disabled) { background: linear-gradient(180deg, rgba(59,130,246,0.06), rgba(59,130,246,0.03)); color:var(--ft-primary-color); border-color: rgba(96,165,250,0.18) }
+[data-theme="dark"] .search-bar, [data-theme="dark"] .toolbar-search { background: var(--ft-input-bg); border:1px solid var(--ft-border-color) }
+[data-theme="dark"] .dropdown-menu { background: var(--ft-card-bg); border:1px solid var(--ft-border-color) }
+
+/* Inputs focus ring in dark theme */
+[data-theme="dark"] .search-bar:focus-within, [data-theme="dark"] .toolbar-search:focus-within { box-shadow: 0 0 0 4px rgba(59,130,246,0.12) }
+
+/* Action icon hover glow colors to match intent */
+[data-theme="dark"] .view-btn:hover { box-shadow: 0 6px 20px rgba(16,185,129,0.12); color:#048859 }
+[data-theme="dark"] .edit-btn:hover { box-shadow: 0 6px 20px rgba(96,165,250,0.12); color:#1d4ed8 }
+[data-theme="dark"] .delete-btn:hover { box-shadow: 0 6px 20px rgba(245,158,11,0.12); color:#b45309 }
+
+/* Global dark-theme placeholder color (applies to inputs/textareas/search fields) */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder,
+[data-theme="dark"] .search-input::placeholder,
+.dark-theme input::placeholder,
+.dark-theme textarea::placeholder { color: var(--ft-placeholder-color, rgba(229,231,235,0.6)); }
+
+/* Export dropdown / pagination baseline */
+.pagination { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-top:1px solid var(--ft-border-color); background: var(--ft-card-bg); font-size:13px }
+.dropdown-menu { min-width:120px; background:var(--ft-card-bg); border:1px solid var(--ft-border-color); border-radius:8px; box-shadow:var(--ft-shadow-lg) }
+
+/* Empty state generic */
+.empty-state-container, .empty-state { display:flex; justify-content:center; align-items:center; min-height:200px; padding:20px }
+.empty-state-card { text-align:center; max-width:420px }
+.empty-state-icon { width:80px; height:80px; border-radius:12px; background: rgba(61,94,225,0.1); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; color:var(--ft-primary-color) }
+
+/* small helpers to avoid breaking existing student CSS expectations */
+.toolbar-search .search-input-field { background:transparent; border:none }
+.table-toolbar-wrapper { padding:16px }
