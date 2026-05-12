@@ -142,8 +142,8 @@ const StockIn = () => {
                 <div>
                     <h4 className="bs-page-title">📥 Stock In Management</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link><span>/</span>
-                        <Link to="/school/book-sales">Book Sales</Link><span>/</span>
+                        <Link to="..">Dashboard</Link><span>/</span>
+                        <Link to="..">Book Sales</Link><span>/</span>
                         <span className="bs-breadcrumb-current">Stock In</span>
                     </nav>
                 </div>

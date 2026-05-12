@@ -22,7 +22,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/auth/login', { replace: true });
+    navigate('/books/login', { replace: true });
   };
 
   return (

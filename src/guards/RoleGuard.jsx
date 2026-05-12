@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
  */
 const RoleGuard = ({
   allowedRoles,
-  loginPath = '/auth/login',
+  loginPath = '/books/login',
   unauthorizedPath = '/auth/403',
   children
 }) => {

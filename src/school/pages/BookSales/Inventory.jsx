@@ -152,13 +152,12 @@ const Inventory = () => {
 
     return (
         <div className="bs-page">
-            {/* Header */}
             <div className="bs-page-header">
                 <div>
                     <h4 className="bs-page-title">📦 Book Inventory</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link><span>/</span>
-                        <Link to="/school/book-sales">Book Sales</Link><span>/</span>
+                        <Link to="..">Dashboard</Link><span>/</span>
+                        <Link to="..">Book Sales</Link><span>/</span>
                         <span className="bs-breadcrumb-current">Inventory</span>
                     </nav>
                 </div>
@@ -167,7 +166,6 @@ const Inventory = () => {
                 </button>
             </div>
 
-            {/* KPI Row */}
             <div className="bs-row bs-row-3" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                 {[
                     { label: 'Total Titles', value: books.length, color: '#3d5ee1', bg: '#eef1fd', icon: '📚' },
@@ -185,7 +183,6 @@ const Inventory = () => {
                 ))}
             </div>
 
-            {/* Table Card */}
             <div className="bs-card">
                 <div className="bs-card-header">
                     <h5 className="bs-card-title">Book Stock List</h5>
@@ -271,17 +268,8 @@ const Inventory = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="bs-table-footer">
-                    <span>Showing {filtered.length} of {books.length} books</span>
-                    <div className="bs-pagination">
-                        <button className="bs-page-btn">‹</button>
-                        <button className="bs-page-btn active">1</button>
-                        <button className="bs-page-btn">›</button>
-                    </div>
-                </div>
             </div>
 
-            {/* Add/Edit Modal */}
             {showModal && (
                 <div className="bs-modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="bs-modal bs-modal-lg" onClick={e => e.stopPropagation()}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -9,8 +9,9 @@ import { useAuth } from '../context/AuthContext';
  * Double-checks localStorage to handle cases where the axios interceptor
  * cleared the token but React state hasn't updated yet.
  */
-const AuthGuard = ({ loginPath = '/auth/login', children }) => {
-    const { isAuthenticated, isLoading } = useAuth();
+const AuthGuard = ({ loginPath = '/books/login', children }) => {
+    const { user, isAuthenticated, isLoading } = useAuth();
+    const { tenantId } = useParams();
 
     // Still loading auth state — show spinner to avoid flash
     if (isLoading) {
@@ -22,10 +23,15 @@ const AuthGuard = ({ loginPath = '/auth/login', children }) => {
     }
 
     // Double-check localStorage — handles forced logout by axios interceptor
-    const hasToken = !!localStorage.getItem('auth_token');
+    const hasToken = !!(sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token'));
 
     if (!isAuthenticated || !hasToken) {
         return <Navigate to={loginPath} replace />;
+    }
+
+    const activeTenantId = user?.tenant_id || sessionStorage.getItem('tenant_id') || localStorage.getItem('tenant_id');
+    if (tenantId && activeTenantId && tenantId !== activeTenantId) {
+        return <Navigate to={`/${activeTenantId}/books`} replace />;
     }
 
     return <>{children ?? <Outlet />}</>;

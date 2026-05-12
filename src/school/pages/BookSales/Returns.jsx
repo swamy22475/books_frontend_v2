@@ -58,22 +58,22 @@ const Returns = () => {
     }, []);
 
     const availableClasses = useMemo(() => {
-        const classes = [...new Set(allSales.map(s => s.student_class || s.class))].filter(Boolean);
-        return classes.sort();
+        const classesSet = [...new Set(allSales.map(s => s.student_class || s.class))].filter(Boolean);
+        return classesSet.sort();
     }, [allSales]);
 
     // ── Student Book Selection Logic ──
     const studentSales = useMemo(() => {
-        let filtered = allSales;
+        let filteredSales = allSales;
         if (selectedClass) {
-            filtered = filtered.filter(s => (s.student_class || s.class) === selectedClass);
+            filteredSales = filteredSales.filter(s => (s.student_class || s.class) === selectedClass);
         }
         if (studentSearch && studentSearch.length >= 2) {
-            filtered = filtered.filter(s => 
+            filteredSales = filteredSales.filter(s => 
                 (s.student_name || '').toLowerCase().includes(studentSearch.toLowerCase())
             );
         }
-        return filtered;
+        return filteredSales;
     }, [allSales, studentSearch, selectedClass]);
 
     // Unique students from search and selected class
@@ -84,7 +84,7 @@ const Returns = () => {
                 studentMap.set(s.student_name, s.student_class || s.class || 'N/A');
             }
         });
-        return Array.from(studentMap.entries()).slice(0, 50); // Show more since it's filtered
+        return Array.from(studentMap.entries()).slice(0, 50);
     }, [studentSales]);
 
     // Books for selected student
@@ -93,7 +93,7 @@ const Returns = () => {
         return allSales.filter(s => s.student_name === form.student);
     }, [allSales, form.student]);
 
-    const filtered = returns.filter(r =>
+    const filteredReturns = returns.filter(r =>
         (filterStatus === 'All' || r.status === filterStatus) &&
         ((r.student || '').toLowerCase().includes(search.toLowerCase()) || 
          (r.book || '').toLowerCase().includes(search.toLowerCase()))
@@ -113,7 +113,7 @@ const Returns = () => {
                 status: 'Pending'
             };
             await returnsService.create(payload);
-            await fetchReturns(); // Refresh list
+            await fetchReturns();
             setForm(emptyForm);
             setStudentSearch('');
             setSelectedClass('');
@@ -130,7 +130,7 @@ const Returns = () => {
     const updateStatus = async (id, status) => {
         try {
             await returnsService.update(id, { status });
-            fetchReturns(); // Refresh list
+            fetchReturns();
         } catch (err) { console.error('Error updating status:', err.message); }
     };
 
@@ -140,13 +140,12 @@ const Returns = () => {
 
     return (
         <div className="bs-page">
-            {/* Header */}
             <div className="bs-page-header">
                 <div>
                     <h4 className="bs-page-title">🔁 Returns Management</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link><span>/</span>
-                        <Link to="/school/book-sales">Book Sales</Link><span>/</span>
+                        <Link to="..">Dashboard</Link><span>/</span>
+                        <Link to="..">Book Sales</Link><span>/</span>
                         <span className="bs-breadcrumb-current">Returns</span>
                     </nav>
                 </div>
@@ -155,7 +154,6 @@ const Returns = () => {
                 </button>
             </div>
 
-            {/* Summary Cards */}
             <div className="bs-row" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                 {[
                     { label: 'Total Returns', value: totalReturns, icon: '🔁', color: '#3d5ee1', bg: '#eef1fd' },
@@ -172,7 +170,6 @@ const Returns = () => {
                 ))}
             </div>
 
-            {/* Table Card */}
             <div className="bs-card">
                 <div className="bs-card-header">
                     <h5 className="bs-card-title">Return Records</h5>
@@ -206,9 +203,9 @@ const Returns = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length === 0 ? (
+                            {filteredReturns.length === 0 ? (
                                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No returns found.</td></tr>
-                            ) : filtered.map((r, i) => (
+                            ) : filteredReturns.map((r, i) => (
                                 <tr key={r.id || i}>
                                     <td style={{ color: 'var(--bs-muted)' }}>{i + 1}</td>
                                     <td style={{ fontWeight: 600 }}>{r.student}</td>
@@ -248,17 +245,8 @@ const Returns = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="bs-table-footer">
-                    <span>Showing {filtered.length} of {returns.length} returns</span>
-                    <div className="bs-pagination">
-                        <button className="bs-page-btn">‹</button>
-                        <button className="bs-page-btn active">1</button>
-                        <button className="bs-page-btn">›</button>
-                    </div>
-                </div>
             </div>
 
-            {/* Add Return Modal */}
             {showModal && (
                 <div className="bs-modal-overlay" onClick={() => { setShowModal(false); setSelectedClass(''); setStudentSearch(''); }}>
                     <div className="bs-modal" onClick={e => e.stopPropagation()}>

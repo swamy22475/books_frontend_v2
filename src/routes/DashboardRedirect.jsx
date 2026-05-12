@@ -14,10 +14,14 @@ const DashboardRedirect = () => {
     }
 
     switch (user?.role) {
+        case 'admin':
+            return <Navigate to="/admin/dashboard" replace />;
         case 'super_admin':
             return <Navigate to="/super/dashboard" replace />;
-        default:
-            return <Navigate to="/school/book-sales" replace />;
+        default: {
+            const tenantId = user?.tenant_id || sessionStorage.getItem('tenant_id') || localStorage.getItem('tenant_id');
+            return tenantId ? <Navigate to={`/${tenantId}/books`} replace /> : <Navigate to="/books/login" replace />;
+        }
     }
 };
 

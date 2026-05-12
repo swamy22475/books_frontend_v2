@@ -21,12 +21,33 @@ export const AuthProvider = ({ children }) => {
   // Restore session from localStorage on mount
   useEffect(() => {
     try {
-      const savedToken = localStorage.getItem('auth_token');
-      const savedUser = localStorage.getItem('auth_user');
+      const routeTenantId = window.location.pathname.split('/').filter(Boolean)[0];
+      const handoffKey = routeTenantId ? `tenant_session_${routeTenantId}` : null;
+      const handoffSession = handoffKey ? localStorage.getItem(handoffKey) : null;
+      const isAdminRoute = window.location.pathname.startsWith('/admin');
+      let savedToken = isAdminRoute
+        ? localStorage.getItem('auth_token')
+        : sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+      let savedUser = isAdminRoute
+        ? localStorage.getItem('auth_user')
+        : sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
+
+      if (handoffSession && handoffKey) {
+        const parsedSession = JSON.parse(handoffSession);
+        savedToken = parsedSession.token;
+        savedUser = JSON.stringify(parsedSession.user);
+        sessionStorage.setItem('auth_token', savedToken);
+        sessionStorage.setItem('auth_user', savedUser);
+        sessionStorage.setItem('tenant_id', parsedSession.user.tenant_id);
+        localStorage.removeItem(handoffKey);
+      }
+      
       if (savedToken && savedUser) {
-        // If it's a mock token, bypass JWT decode
-        if (savedToken.startsWith('local_token_')) {
-          setUser(JSON.parse(savedUser));
+        // If it's a mock token, we might still want to allow it for now if we haven't implemented full JWT yet
+        // but for a permanent system, we should ideally use real tokens.
+        // For now, let's keep it simple: if there's a user and token, we trust it.
+        if (savedToken.startsWith('mock-token-') || savedToken.startsWith('local_token_')) {
+           setUser(JSON.parse(savedUser));
         } else {
           const payload = decodeJwtPayload(savedToken);
           // Check token expiry
@@ -34,18 +55,26 @@ export const AuthProvider = ({ children }) => {
             setUser(JSON.parse(savedUser));
           } else {
             // Token expired — clear
+            sessionStorage.removeItem('auth_token');
+            sessionStorage.removeItem('auth_user');
+            sessionStorage.removeItem('tenant_id');
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_user');
+            localStorage.removeItem('tenant_id');
             setUser(null);
           }
         }
       } else {
-        // No saved user — require login
         setUser(null);
       }
     } catch (e) {
+      console.error("Auth restoration failed:", e);
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
+      sessionStorage.removeItem('tenant_id');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      localStorage.removeItem('tenant_id');
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -55,17 +84,22 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback((token, userData) => {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(userData));
+    localStorage.setItem('tenant_id', userData.tenant_id);
     setUser(userData);
   }, []);
 
   const logout = useCallback(() => {
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_user');
+    sessionStorage.removeItem('tenant_id');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    localStorage.removeItem('tenant_id');
     setUser(null);
   }, []);
 
   const getToken = useCallback(() => {
-    return localStorage.getItem('auth_token');
+    return sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
   }, []);
 
   return (
@@ -78,9 +112,9 @@ export const AuthProvider = ({ children }) => {
         logout,
         getToken
       }}>
-          {children}
-        </AuthContext.Provider>);
-
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 // ── Hook ──

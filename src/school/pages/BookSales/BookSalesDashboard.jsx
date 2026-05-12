@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
     BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -33,6 +33,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const BookSalesDashboard = () => {
     const navigate = useNavigate();
+    const { tenantId: routeTenantId } = useParams();
+    const tenantId = routeTenantId || localStorage.getItem('tenant_id') || 'default';
+    const bookSalesPath = `/${tenantId}/books`;
     const [period, setPeriod] = useState('This Year');
     const [data, setData] = useState({
         kpis: { vendors: 0, active_vendors: 0, total_stock: 0, total_titles: 0, total_sold: 0, total_revenue: 0, total_returns: 0 },
@@ -87,7 +90,7 @@ const BookSalesDashboard = () => {
                 <div>
                     <h4 className="bs-page-title">📚 Book Sales Dashboard</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link>
+                        <Link to={`/${tenantId}/books`}>Dashboard</Link>
                         <span>/</span>
                         <span className="bs-breadcrumb-current">Book Sales</span>
                     </nav>
@@ -136,7 +139,7 @@ const BookSalesDashboard = () => {
                 <div className="bs-card-body">
                     <div className="bs-quick-actions">
                         {quickActions.map((qa, i) => (
-                            <Link key={i} to={qa.to} className="bs-quick-action-btn">
+                            <Link key={i} to={qa.to.replace('/school/book-sales', bookSalesPath)} className="bs-quick-action-btn">
                                 <div className="bs-quick-action-icon" style={{ background: qa.bg, color: qa.color }}>
                                     <span style={{ fontSize: 24 }}>{qa.label.split(' ')[0]}</span>
                                 </div>
@@ -153,7 +156,7 @@ const BookSalesDashboard = () => {
                 <div className="bs-card">
                     <div className="bs-card-header">
                         <h5 className="bs-card-title">📈 Monthly Sales & Revenue</h5>
-                        <Link to="/school/book-sales/reports" className="bs-btn bs-btn-outline bs-btn-sm">Full Report →</Link>
+                        <Link to={`${bookSalesPath}/reports`} className="bs-btn bs-btn-outline bs-btn-sm">Full Report →</Link>
                     </div>
                     <div className="bs-chart-body">
                         <ResponsiveContainer width="100%" height={220}>
@@ -180,21 +183,21 @@ const BookSalesDashboard = () => {
                     </div>
                 </div>
 
-                {/* Stock vs Sold */}
+                {/* Daily Stock vs Sold */}
                 <div className="bs-card">
                     <div className="bs-card-header">
-                        <h5 className="bs-card-title">📦 Stock vs Sold by Book</h5>
-                        <Link to="/school/book-sales/inventory" className="bs-btn bs-btn-outline bs-btn-sm">View Inventory →</Link>
+                        <h5 className="bs-card-title">📦 Daily Stock Added vs Sold</h5>
+                        <Link to={`${bookSalesPath}/inventory`} className="bs-btn bs-btn-outline bs-btn-sm">View Inventory →</Link>
                     </div>
                     <div className="bs-chart-body">
                         <ResponsiveContainer width="100%" height={220}>
                             <BarChart data={stock_vs_sold} margin={{ top: 5, right: 10, bottom: 0, left: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f7" />
-                                <XAxis dataKey="book" tick={{ fontSize: 11 }} />
+                                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                                 <YAxis tick={{ fontSize: 11 }} />
-                                <Tooltip />
+                                <Tooltip content={<CustomTooltip />} />
                                 <Legend />
-                                <Bar dataKey="stock" name="In Stock" fill="#3d5ee1" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="stock" name="Stock Added" fill="#3d5ee1" radius={[4, 4, 0, 0]} />
                                 <Bar dataKey="sold" name="Sold" fill="#28c76f" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
@@ -208,7 +211,7 @@ const BookSalesDashboard = () => {
                  <div className="bs-card">
                     <div className="bs-card-header">
                         <h5 className="bs-card-title">🏢 Recent Vendors</h5>
-                        <Link to="/school/book-sales/vendors" className="bs-btn bs-btn-primary bs-btn-sm">Manage Vendors</Link>
+                        <Link to={`${bookSalesPath}/vendors`} className="bs-btn bs-btn-primary bs-btn-sm">Manage Vendors</Link>
                     </div>
                     <div className="bs-table-wrap">
                         <table className="bs-table">
@@ -283,7 +286,7 @@ const BookSalesDashboard = () => {
                 <div className="bs-card">
                     <div className="bs-card-header">
                         <h5 className="bs-card-title">🧾 Recent Sales</h5>
-                        <Link to="/school/book-sales/sales" className="bs-btn bs-btn-primary bs-btn-sm">View All</Link>
+                        <Link to={`${bookSalesPath}/sales`} className="bs-btn bs-btn-primary bs-btn-sm">View All</Link>
                     </div>
                     <div className="bs-table-wrap">
                         <table className="bs-table">
@@ -360,7 +363,7 @@ const BookSalesDashboard = () => {
             <div className="bs-card">
                 <div className="bs-card-header">
                     <h5 className="bs-card-title">⚠️ Low Stock / Out of Stock Alert</h5>
-                    <Link to="/school/book-sales/inventory" className="bs-btn bs-btn-warning bs-btn-sm">Manage Inventory</Link>
+                    <Link to={`${bookSalesPath}/inventory`} className="bs-btn bs-btn-warning bs-btn-sm">Manage Inventory</Link>
                 </div>
                 <div className="bs-table-wrap">
                     <table className="bs-table">

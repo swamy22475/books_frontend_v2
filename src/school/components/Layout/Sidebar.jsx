@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import {
     IconLayoutDashboard, IconApps, IconUser, IconUsers, IconUserPlus,
     IconSchool, IconBook, IconBooks, IconCalendar, IconClock,
@@ -45,6 +45,11 @@ const PATH_TO_PERMISSION_ID = {
     '/school/book-sales/reports': 'report_financial',
 };
 
+const withTenantPath = (path, tenantId) => {
+    if (!path?.startsWith('/school/book-sales')) return path;
+    return path.replace('/school/book-sales', `/${tenantId}/books`);
+};
+
 /**
  * Load role-based menu access from localStorage.
  * Returns null if no role or no saved permissions.
@@ -84,7 +89,7 @@ const menuData = [
 ];
 
 // Recursive component for nested menu items
-const SubMenuItemNested = ({ item, level = 0 }) => {
+const SubMenuItemNested = ({ item, level = 0, tenantId }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const IconComponent = item.icon;
@@ -115,7 +120,7 @@ const SubMenuItemNested = ({ item, level = 0 }) => {
                     <ul className="submenu">
                         {item.subItems.map((sub, idx) => (
                             <li key={idx}>
-                                <SubMenuItemNested item={sub} level={level + 1} />
+                                <SubMenuItemNested item={sub} level={level + 1} tenantId={tenantId} />
                             </li>
                         ))}
                     </ul>
@@ -126,7 +131,7 @@ const SubMenuItemNested = ({ item, level = 0 }) => {
 
     return (
         <NavLink
-            to={item.path || '#'}
+            to={withTenantPath(item.path, tenantId) || '#'}
             className={({ isActive }) => `submenu-link ${isActive ? 'active' : ''}`}
         >
             {item.title}
@@ -134,7 +139,7 @@ const SubMenuItemNested = ({ item, level = 0 }) => {
     );
 };
 
-const SidebarMenuItem = ({ item }) => {
+const SidebarMenuItem = ({ item, tenantId }) => {
     const [isOpen, setIsOpen] = useState(false);
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const IconComponent = item.icon;
@@ -164,7 +169,7 @@ const SidebarMenuItem = ({ item }) => {
                     <ul className="submenu">
                         {item.subItems.map((sub, idx) => (
                             <li key={idx}>
-                                <SubMenuItemNested item={sub} level={0} />
+                                <SubMenuItemNested item={sub} level={0} tenantId={tenantId} />
                             </li>
                         ))}
                     </ul>
@@ -175,7 +180,7 @@ const SidebarMenuItem = ({ item }) => {
 
     return (
         <NavLink
-            to={item.path || '#'}
+            to={withTenantPath(item.path, tenantId) || '#'}
             className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}
         >
             <span className="menu-item-content">
@@ -187,6 +192,8 @@ const SidebarMenuItem = ({ item }) => {
 };
 
 const Sidebar = ({ isOpen }) => {
+    const { tenantId: routeTenantId } = useParams();
+    const tenantId = routeTenantId || localStorage.getItem('tenant_id') || 'default';
     // ── Get current user role (graceful fallback) ──
     let userRole = null;
     let branchName = null;
@@ -239,7 +246,7 @@ const Sidebar = ({ isOpen }) => {
                         <ul className="menu-list">
                             {section.items.map((item, itemIdx) => (
                                 <li key={itemIdx}>
-                                    <SidebarMenuItem item={item} />
+                                    <SidebarMenuItem item={item} tenantId={tenantId} />
                                 </li>
                             ))}
                         </ul>

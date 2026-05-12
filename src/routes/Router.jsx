@@ -27,6 +27,17 @@ const BookSalesReturns = Loadable(lazy(() => import('../school/pages/BookSales/R
 const BookSalesReports = Loadable(lazy(() => import('../school/pages/BookSales/BookSalesReports')));
 const BookSalesTypes = Loadable(lazy(() => import('../school/pages/BookSales/BookTypes')));
 
+const bookSalesRoutes = [
+  { index: true, element: <BookSalesDashboard /> },
+  { path: 'vendors', element: <BookSalesVendors /> },
+  { path: 'inventory', element: <BookSalesInventory /> },
+  { path: 'book-types', element: <BookSalesTypes /> },
+  { path: 'stock-in', element: <BookSalesStockIn /> },
+  { path: 'sales', element: <BookSalesSalesEntry /> },
+  { path: 'returns', element: <BookSalesReturns /> },
+  { path: 'reports', element: <BookSalesReports /> },
+];
+
 const Router = [
   // Landing page at root
   {
@@ -43,9 +54,41 @@ const Router = [
     ],
   },
 
+  {
+    path: '/school/book-sales',
+    element: <DashboardRedirect />,
+  },
+
+  {
+    path: '/school/book-sales/*',
+    element: <DashboardRedirect />,
+  },
+
+  {
+    path: '/books',
+    element: <BlankLayout />,
+    children: [
+      { path: 'login', element: <SchoolLogin /> },
+    ],
+  },
+
+  {
+    path: '/:tenantId/books',
+    element: (
+      <AuthGuard>
+        <SchoolAdminLayout />
+      </AuthGuard>
+    ),
+    errorElement: <ErrorElement />,
+    children: [
+      ...bookSalesRoutes,
+      { path: '*', element: <Navigate to="/auth/404" state={{ from: 'school' }} /> },
+    ],
+  },
+
   // School Admin Routes
   {
-    path: '/school',
+    path: '/school/:tenantId',
     element: (
       <AuthGuard>
         <SchoolAdminLayout />
@@ -59,16 +102,7 @@ const Router = [
       // Book Sales Routes
       {
         path: 'book-sales',
-        children: [
-          { index: true, element: <BookSalesDashboard /> },
-          { path: 'vendors', element: <BookSalesVendors /> },
-          { path: 'inventory', element: <BookSalesInventory /> },
-          { path: 'book-types', element: <BookSalesTypes /> },
-          { path: 'stock-in', element: <BookSalesStockIn /> },
-          { path: 'sales', element: <BookSalesSalesEntry /> },
-          { path: 'returns', element: <BookSalesReturns /> },
-          { path: 'reports', element: <BookSalesReports /> },
-        ],
+        children: bookSalesRoutes,
       },
 
       // Catch-all 404
@@ -81,8 +115,8 @@ const Router = [
     path: '/auth',
     element: <BlankLayout />,
     children: [
-      { path: 'login', element: <SchoolLogin /> },
-      { path: 'school-login', element: <SchoolLogin /> },
+      { path: 'login', element: <Navigate to="/books/login" replace /> },
+      { path: 'school-login', element: <Navigate to="/books/login" replace /> },
       { path: '403', element: <Error /> },
       { path: '404', element: <Error /> },
       { path: '*', element: <Navigate to="/auth/404" /> },

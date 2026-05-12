@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../components/provider/theme-provider';
+import { useAuth } from '../../../context/AuthContext';
 import {
     CalendarIcon, PlusIcon, MoonIcon, BellIcon, MessageIcon,
     ChartBarIcon, MaximizeIcon, MenuIcon, SearchIcon,
@@ -47,7 +48,11 @@ const InvoiceIcon = ({ size = 24, color = '#fff' }) => (
 
 const Header = ({ toggleSidebar }) => {
     const { theme, setTheme } = useTheme();
+    const { user, logout } = useAuth();
     const isDarkMode = theme === 'dark';
+    const displayName = user?.username || 'Admin User';
+    const schoolName = user?.school_name || user?.tenant_id || 'School Principal';
+    const avatarLetter = displayName.charAt(0).toUpperCase();
 
     const toggleTheme = () => {
         setTheme(isDarkMode ? 'light' : 'dark');
@@ -95,9 +100,24 @@ const Header = ({ toggleSidebar }) => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-        navigate('/auth/login', { replace: true });
+        const adminBackup = localStorage.getItem('admin_session_backup');
+        logout();
+        if (adminBackup) {
+            try {
+                const parsedBackup = JSON.parse(adminBackup);
+                if (parsedBackup.token && parsedBackup.user && parsedBackup.tenantId) {
+                    localStorage.setItem('auth_token', parsedBackup.token);
+                    localStorage.setItem('auth_user', parsedBackup.user);
+                    localStorage.setItem('tenant_id', parsedBackup.tenantId);
+                    localStorage.removeItem('admin_session_backup');
+                    navigate('/admin/dashboard', { replace: true });
+                    return;
+                }
+            } catch (error) {
+                localStorage.removeItem('admin_session_backup');
+            }
+        }
+        navigate('/books/login', { replace: true });
     };
 
     const toggleFullscreen = () => {
@@ -169,22 +189,102 @@ const Header = ({ toggleSidebar }) => {
                     </button>
                 </div>
 
-                <div className="user-profile-brief" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--bs-text)' }}>Admin User</div>
-                        <div style={{ fontSize: '11px', color: 'var(--bs-muted)' }}>School Principal</div>
+                <button 
+                    className="header-icon-btn" 
+                    onClick={handleLogout}
+                    title="Logout"
+                    style={{
+                        marginLeft: '5px',
+                        background: 'rgba(234, 84, 85, 0.1)',
+                        borderColor: 'rgba(234, 84, 85, 0.2)',
+                        color: '#ea5455'
+                    }}
+                >
+                    <LogoutIcon size={20} />
+                </button>
+
+                <div className="profile-dropdown-container" ref={profileRef}>
+                    <div 
+                        className="user-profile-brief" 
+                        onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                        style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '10px',
+                            cursor: 'pointer',
+                            padding: '5px 10px',
+                            borderRadius: '12px',
+                            transition: 'all 0.2s ease',
+                            background: showProfileDropdown ? 'var(--bs-border)' : 'transparent'
+                        }}
+                    >
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--bs-text)' }}>{displayName}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--bs-muted)' }}>{schoolName}</div>
+                        </div>
+                        <div style={{ 
+                            width: '38px', 
+                            height: '38px', 
+                            borderRadius: '50%', 
+                            background: 'linear-gradient(135deg, var(--bs-primary), var(--bs-purple))',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#fff',
+                            fontWeight: '700'
+                        }}>{avatarLetter}</div>
+                        <ChevronDownIcon size={14} color="var(--bs-muted)" />
                     </div>
-                    <div style={{ 
-                        width: '38px', 
-                        height: '38px', 
-                        borderRadius: '50%', 
-                        background: 'linear-gradient(135deg, var(--bs-primary), var(--bs-purple))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#fff',
-                        fontWeight: '700'
-                    }}>A</div>
+
+                    {showProfileDropdown && (
+                        <div className="profile-dropdown" style={{ display: 'block' }}>
+                            <div className="dropdown-header">
+                                <div className="dropdown-avatar-container">
+                                    <div style={{ 
+                                        width: '40px', 
+                                        height: '40px', 
+                                        borderRadius: '50%', 
+                                        background: 'linear-gradient(135deg, var(--bs-primary), var(--bs-purple))',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#fff',
+                                        fontWeight: '700'
+                                    }}>{avatarLetter}</div>
+                                    <span className="online-indicator"></span>
+                                </div>
+                                <div className="dropdown-user-info">
+                                    <span className="dropdown-user-name">{displayName}</span>
+                                    <span className="dropdown-user-role">{schoolName}</span>
+                                </div>
+                            </div>
+                            <div className="dropdown-divider"></div>
+                            <ul className="dropdown-menu-list">
+                                <li>
+                                    <button className="dropdown-menu-item">
+                                        <UserIcon size={18} />
+                                        <span>My Profile</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className="dropdown-menu-item">
+                                        <SettingsIcon size={18} />
+                                        <span>Settings</span>
+                                    </button>
+                                </li>
+                                <div className="dropdown-divider"></div>
+                                <li>
+                                    <button 
+                                        className="dropdown-menu-item logout-btn" 
+                                        onClick={handleLogout}
+                                    >
+                                        <LogoutIcon size={18} />
+                                        <span>Logout</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>

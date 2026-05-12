@@ -17,7 +17,6 @@ const mapToFrontend = (v) => ({
     payment: v.payment_method,
     booksSupplied: v.books_supplied,
     amount: v.total_amount,
-    // Fallback to amount_paid if paid_amount is 0/missing (for compatibility with existing DB data)
     paidAmount: v.paid_amount || v.amount_paid || 0,
     remainingAmount: v.remaining_amount || 0,
     billNo: v.bill_no || '',
@@ -93,7 +92,6 @@ const Vendors = () => {
                 await vendorService.create(payload);
             }
             
-            // Ensure spinner shows for at least 800ms for "premium" feel
             const elapsed = Date.now() - startTime;
             if (elapsed < 800) await new Promise(r => setTimeout(r, 800 - elapsed));
 
@@ -101,7 +99,6 @@ const Vendors = () => {
             setForm(emptyVendor);
             setEditId(null);
 
-            // Switch from spinner → checkmark
             setSaveState('success');
             setTimeout(() => setSaveState('idle'), 2500);
         } catch (error) {
@@ -125,7 +122,6 @@ const Vendors = () => {
 
         if (window.confirm(confirmMsg)) {
             try {
-                // Update amounts in backend
                 const newPaidAmount = Number(vendor.paidAmount) + paymentAmount;
                 const newRemaining = Number(vendor.amount) - newPaidAmount;
                 
@@ -160,7 +156,6 @@ const Vendors = () => {
 
     return (
         <div className="bs-page">
-            {/* ── Center-screen Save Overlay ─────────────────────────── */}
             <style>{`
                 @keyframes vSpin {
                     to { transform: rotate(360deg); }
@@ -209,8 +204,6 @@ const Vendors = () => {
                         textAlign: 'center',
                         animation: 'vPopIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards',
                     }}>
-
-                        {/* SAVING: Spinner */}
                         {saveState === 'saving' && (
                             <>
                                 <div style={{
@@ -231,10 +224,8 @@ const Vendors = () => {
                             </>
                         )}
 
-                        {/* SUCCESS: Animated Checkmark */}
                         {saveState === 'success' && (
                             <>
-                                {/* Pulse ring behind circle */}
                                 <div style={{ position: 'relative', width: '90px', height: '90px' }}>
                                     <div style={{
                                         position: 'absolute', inset: 0,
@@ -242,9 +233,7 @@ const Vendors = () => {
                                         background: 'rgba(16,185,129,0.15)',
                                         animation: 'vPulseRing 1.2s ease-out infinite',
                                     }} />
-                                    {/* SVG Checkmark */}
                                     <svg viewBox="0 0 90 90" width="90" height="90">
-                                        {/* Green circle */}
                                         <circle
                                             cx="45" cy="45" r="40"
                                             fill="none"
@@ -255,7 +244,6 @@ const Vendors = () => {
                                             strokeDashoffset="251"
                                             style={{ animation: 'vCircleDraw 0.5s ease forwards' }}
                                         />
-                                        {/* Tick */}
                                         <polyline
                                             points="26,47 39,60 64,32"
                                             fill="none"
@@ -283,19 +271,16 @@ const Vendors = () => {
                                 </div>
                             </>
                         )}
-
                     </div>
                 </div>
             )}
-
-            {/* Header */}
 
             <div className="bs-page-header">
                 <div>
                     <h4 className="bs-page-title">🏢 Vendor Details</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link><span>/</span>
-                        <Link to="/school/book-sales">Book Sales</Link><span>/</span>
+                        <Link to="..">Dashboard</Link><span>/</span>
+                        <Link to="..">Book Sales</Link><span>/</span>
                         <span className="bs-breadcrumb-current">Vendors</span>
                     </nav>
                 </div>
@@ -304,7 +289,6 @@ const Vendors = () => {
                 </button>
             </div>
 
-            {/* Summary Bar */}
             <div className="bs-summary-bar">
                 <div className="bs-summary-item">
                     <span className="bs-summary-label">Total Vendors</span>
@@ -327,7 +311,6 @@ const Vendors = () => {
                 </div>
             </div>
 
-            {/* Table Card */}
             <div className="bs-card">
                 <div className="bs-card-header">
                     <h5 className="bs-card-title">All Vendors</h5>
@@ -370,9 +353,9 @@ const Vendors = () => {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 32 }}><div className="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div></td></tr>
+                                <tr><td colSpan={14} style={{ textAlign: 'center', padding: 32 }}><div className="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div></td></tr>
                             ) : filtered.length === 0 ? (
-                                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No vendors found.</td></tr>
+                                <tr><td colSpan={14} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No vendors found.</td></tr>
                             ) : filtered.map((v, i) => (
                                 <tr key={v.id}>
                                     <td style={{ color: 'var(--bs-muted)' }}>{i + 1}</td>
@@ -405,12 +388,8 @@ const Vendors = () => {
                                             <div className="bs-dropdown">
                                                 <button className="bs-btn-pay">💸 Pay Bill ▾</button>
                                                 <div className="bs-dropdown-content">
-                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'full')}>
-                                                        ✅ Full Payment
-                                                    </div>
-                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'half')}>
-                                                        🌓 Half Payment
-                                                    </div>
+                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'full')}>✅ Full Payment</div>
+                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'half')}>🌓 Half Payment</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -420,17 +399,8 @@ const Vendors = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="bs-table-footer">
-                    <span>Showing {filtered.length} of {vendors.length} vendors</span>
-                    <div className="bs-pagination">
-                        <button className="bs-page-btn">‹</button>
-                        <button className="bs-page-btn active">1</button>
-                        <button className="bs-page-btn">›</button>
-                    </div>
-                </div>
             </div>
 
-            {/* Add/Edit Modal */}
             {showModal && (
                 <div className="bs-modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="bs-modal" onClick={e => e.stopPropagation()}>
@@ -513,7 +483,6 @@ const Vendors = () => {
                 </div>
             )}
 
-            {/* View Modal */}
             {viewVendor && (
                 <div className="bs-modal-overlay" onClick={() => setViewVendor(null)}>
                     <div className="bs-modal" onClick={e => e.stopPropagation()}>

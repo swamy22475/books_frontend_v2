@@ -7,13 +7,13 @@ import ErrorImg from "src/assets/images/backgrounds/errorimg.svg";
  * Smart error page that redirects based on context:
  *
  * RULES (strict):
- * 1. No session (no auth_token) → auto-redirect to /auth/login after 2s
+ * 1. No session (no auth_token) → auto-redirect to /books/login after 2s
  * 2. Came from /school/* routes → button goes to /school/dashboard
  * 3. Came from /super/* routes → button goes to /super/dashboard
  * 4. Fallback → check user role from localStorage:
  *    - super_admin → /super/dashboard
  *    - all other roles → /school/dashboard
- * 5. No role info at all → /auth/login
+ * 5. No role info at all → /books/login
  */
 const Error = () => {
   const navigate = useNavigate();
@@ -40,14 +40,14 @@ const Error = () => {
     } catch { /* ignore */ }
 
     // Priority 3: No info → go to login
-    return '/auth/login';
+    return '/books/login';
   };
 
   // No session → auto-redirect to login
   useEffect(() => {
     if (!hasSession) {
       const timer = setTimeout(() => {
-        navigate('/auth/login', { replace: true });
+        navigate('/books/login', { replace: true });
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -57,7 +57,7 @@ const Error = () => {
     if (hasSession) {
       navigate(getDashboardPath(), { replace: true });
     } else {
-      navigate('/auth/login', { replace: true });
+      navigate('/books/login', { replace: true });
     }
   };
 

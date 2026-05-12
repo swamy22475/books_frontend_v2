@@ -10,9 +10,6 @@ const classes = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6
 const paymentMethods = ['Cash', 'UPI', 'Cheque', 'Card', 'Bank Transfer'];
 const today = new Date().toISOString().split('T')[0];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 const stockPct = (b) => (b.qty === 0 ? 0 : Math.round((b.stock / b.qty) * 100));
 
 const StockBadge = ({ book }) => {
@@ -22,33 +19,27 @@ const StockBadge = ({ book }) => {
     return <span className="se-stock-badge se-stock-ok">In Stock ({book.stock})</span>;
 };
 
-// Initial empty selected-books map: { bookId: { book, qty, type } }
 const emptySelected = {};
 const emptyStudent = { 
-    name: '', class: 'Class 10', payment: 'Cash', date: today,
+    name: '', phone: '', class: 'Class 10', payment: 'Cash', date: today,
     paidAmount: 0, concession: 0 
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SalesEntry Component
-// ─────────────────────────────────────────────────────────────────────────────
 const SalesEntry = () => {
     const [sales, setSales] = useState([]);
-    const [inventory, setInventory] = useState([]);   // books from API
+    const [inventory, setInventory] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [student, setStudent] = useState(emptyStudent);
     const [viewSale, setViewSale] = useState(null);
-    const [selected, setSelected] = useState(emptySelected);   // { id: {book, qty, type} }
+    const [selected, setSelected] = useState(emptySelected);
     const [bookSearch, setBookSearch] = useState('');
 
-    // ── Fetch books and sales from backend on mount ────────────────────────
     const fetchInventory = () => {
         inventoryService.getAll().then(data => {
             const mapped = data.map(b => ({
                 id: b.id,
                 name: b.name,
-                // Handle comma-separated classes or single class string
                 book_class: b.book_class ? b.book_class.split(', ').map(c => c.trim()) : [],
                 type: b.book_type || 'Set',
                 qty: b.total_qty || 0,
@@ -61,21 +52,32 @@ const SalesEntry = () => {
 
     const fetchSales = () => {
         salesService.getAll().then(data => {
-            const mapped = data.map(s => ({
+            const mapped = data.map(s => {
+                const total = Number(s.total_amount) || 0;
+                const paid = Number(s.paid_amount) || 0;
+                const concession = Number(s.concession) || 0;
+                const savedBalance = Number(s.remaining_amount);
+                const balance = Number.isFinite(savedBalance) && savedBalance > 0
+                    ? savedBalance
+                    : Math.max(total - concession - paid, 0);
+
+                return ({
                 id: s.id,
                 student: s.student_name,
-                class: s.student_class || s.class, // Handle both direct and aliased field
+                phone: s.student_phone || '',
+                class: s.student_class || s.class,
                 book: s.book_name,
                 qty: s.qty,
                 type: s.book_type,
                 price: s.unit_price,
-                total: s.total_amount,
-                paid: s.paid_amount || 0,
-                concession: s.concession || 0,
-                balance: s.remaining_amount || 0,
+                total,
+                paid,
+                concession,
+                balance,
                 payment: s.payment_method,
                 date: s.date ? new Date(s.date).toISOString().split('T')[0] : today,
-            }));
+            });
+            });
             setSales(mapped);
         }).catch(err => console.error('Error fetching sales:', err));
     };
@@ -85,12 +87,9 @@ const SalesEntry = () => {
         fetchSales();
     }, []);
 
-    // Table filters
     const [search, setSearch] = useState('');
     const [filterClass, setFilterClass] = useState('All');
 
-    // ── Book multi-select helpers ──────────────────────────────────────────
-    // Show books that match the selected student class AND search text
     const visibleBooks = useMemo(() =>
         inventory.filter(b => {
             const matchClass = !student.class || (Array.isArray(b.book_class) ? b.book_class.includes(student.class) : b.book_class === student.class);
@@ -129,14 +128,12 @@ const SalesEntry = () => {
         );
     };
 
-    // ── Computed cart totals ────────────────────────────────────────────────
     const cartItems = Object.values(selected);
     const cartTotal = cartItems.reduce(
         (sum, item) => sum + Number(item.book.sellingPrice) * item.qty, 0
     );
     const cartBookCount = cartItems.length;
 
-    // ── Submit ──────────────────────────────────────────────────────────────
     const handleSubmit = async () => {
         if (!student.name || cartItems.length === 0) return;
 
@@ -148,6 +145,7 @@ const SalesEntry = () => {
                 const saleData = {
                     book_id: item.book.id,
                     student_name: student.name,
+                    student_phone: student.phone,
                     class: student.class,
                     book_name: item.book.name,
                     book_type: item.type,
@@ -184,18 +182,17 @@ const SalesEntry = () => {
         setBookSearch('');
     };
 
-    // ── Table display ───────────────────────────────────────────────────────
     const filtered = sales.filter(s =>
         (filterClass === 'All' || s.class === filterClass) &&
         (s.student.toLowerCase().includes(search.toLowerCase()) ||
+            (s.phone || '').includes(search) ||
             s.book.toLowerCase().includes(search.toLowerCase()))
     );
 
-    // ── Group filtered records by Student + Class + Date ──
     const groupedSales = useMemo(() => {
         const groups = {};
         filtered.forEach(s => {
-            const key = `${s.student}-${s.class}-${s.date}-${s.payment}`;
+            const key = `${s.student}-${s.phone}-${s.class}-${s.date}-${s.payment}`;
             if (!groups[key]) {
                 groups[key] = {
                     ...s,
@@ -227,8 +224,8 @@ const SalesEntry = () => {
                 <div>
                     <h4 className="bs-page-title">🧾 Sales Entry</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link><span>/</span>
-                        <Link to="/school/book-sales">Book Sales</Link><span>/</span>
+                        <Link to="..">Dashboard</Link><span>/</span>
+                        <Link to="..">Book Sales</Link><span>/</span>
                         <span className="bs-breadcrumb-current">Sales Entry</span>
                     </nav>
                 </div>
@@ -283,6 +280,7 @@ const SalesEntry = () => {
                             <tr>
                                 <th>#</th>
                                 <th>Student Name</th>
+                                <th>Phone</th>
                                 <th>Class</th>
                                 <th>Books</th>
                                 <th>Total Bill</th>
@@ -295,11 +293,12 @@ const SalesEntry = () => {
                         </thead>
                         <tbody>
                             {groupedSales.length === 0 ? (
-                                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No records found.</td></tr>
+                                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No records found.</td></tr>
                             ) : groupedSales.map((s, i) => (
                                 <tr key={i}>
                                     <td style={{ color: 'var(--bs-muted)' }}>{i + 1}</td>
                                     <td style={{ fontWeight: 600 }}>{s.student}</td>
+                                    <td style={{ color: 'var(--bs-muted)' }}>{s.phone || '-'}</td>
                                     <td><span className="bs-badge bs-badge-blue">{s.class}</span></td>
                                     <td style={{ color: 'var(--bs-muted)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {s.books.join(', ')}
@@ -323,14 +322,6 @@ const SalesEntry = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="bs-table-footer">
-                    <span>Showing {groupedSales.length} student records</span>
-                    <div className="bs-pagination">
-                        <button className="bs-page-btn">‹</button>
-                        <button className="bs-page-btn active">1</button>
-                        <button className="bs-page-btn">›</button>
-                    </div>
-                </div>
             </div>
 
             {showModal && (
@@ -340,7 +331,6 @@ const SalesEntry = () => {
                             <h5 className="bs-modal-title">🧾 New Sale Entry</h5>
                             <button className="bs-modal-close" onClick={handleClose}>×</button>
                         </div>
-
                         <div className="se-modal-body">
                             <div className="se-left-panel">
                                 <div className="se-section-label">👤 Student Information</div>
@@ -350,6 +340,20 @@ const SalesEntry = () => {
                                         <input className="bs-form-input" placeholder="e.g. Aarav Sharma"
                                             value={student.name}
                                             onChange={e => setStudent({ ...student, name: e.target.value })} />
+                                    </div>
+                                    <div className="bs-form-group">
+                                        <label className="bs-form-label">Phone Number</label>
+                                        <input
+                                            className="bs-form-input"
+                                            type="tel"
+                                            inputMode="numeric"
+                                            placeholder="e.g. 9876543210"
+                                            value={student.phone}
+                                            onChange={e => {
+                                                const phone = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                setStudent({ ...student, phone });
+                                            }}
+                                        />
                                     </div>
                                     <div className="bs-form-group">
                                         <label className="bs-form-label">Class</label>
@@ -371,12 +375,10 @@ const SalesEntry = () => {
                                             onChange={e => setStudent({ ...student, date: e.target.value })} />
                                     </div>
                                 </div>
-
                                 <div className="se-section-label" style={{ marginTop: 20 }}>
                                     📚 Select Books
                                     <span className="se-section-hint">Tick checkboxes to add multiple books</span>
                                 </div>
-
                                 <div className="se-book-search-wrap">
                                     <span className="se-book-search-icon">🔍</span>
                                     <input
@@ -387,7 +389,6 @@ const SalesEntry = () => {
                                         onChange={e => setBookSearch(e.target.value)}
                                     />
                                 </div>
-
                                 <div className="se-book-list">
                                     {visibleBooks.length === 0 ? (
                                         <p style={{ color: 'var(--bs-muted)', textAlign: 'center', padding: 16 }}>No books found.</p>
@@ -452,7 +453,6 @@ const SalesEntry = () => {
                                     })}
                                 </div>
                             </div>
-
                             <div className="se-right-panel">
                                 <div className="se-bill-header">
                                     🧾 Bill Summary
@@ -460,7 +460,6 @@ const SalesEntry = () => {
                                         <span className="se-bill-count">{cartBookCount} book{cartBookCount > 1 ? 's' : ''}</span>
                                     )}
                                 </div>
-
                                 {cartItems.length === 0 ? (
                                     <div className="se-bill-empty">
                                         <span style={{ fontSize: 36 }}>📚</span>
@@ -484,7 +483,6 @@ const SalesEntry = () => {
                                         ))}
                                     </div>
                                 )}
-
                                 <div className="se-bill-footer">
                                     <div className="se-bill-row">
                                         <span>Sub Total</span>
@@ -529,7 +527,6 @@ const SalesEntry = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={handleClose}>Cancel</button>
                             <button
@@ -557,6 +554,10 @@ const SalesEntry = () => {
                                 <div className="se-bill-view-section">
                                     <label>Student Name</label>
                                     <div className="se-bill-view-value">{viewSale.student}</div>
+                                </div>
+                                <div className="se-bill-view-section">
+                                    <label>Phone Number</label>
+                                    <div className="se-bill-view-value">{viewSale.phone || '-'}</div>
                                 </div>
                                 <div className="se-bill-view-section">
                                     <label>Class</label>

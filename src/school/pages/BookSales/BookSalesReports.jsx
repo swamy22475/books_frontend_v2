@@ -119,12 +119,11 @@ const BookSalesReports = () => {
     const vendorWiseData = useMemo(() => {
         const vMap = {};
         sales.forEach(s => {
-            // Find book's vendor if available, or just use dummy for now
             const vName = "Direct"; 
             if (!vMap[vName]) vMap[vName] = 0;
             vMap[vName] += (s.total_amount || 0);
         });
-        return Object.entries(vMap).map(([vendor, sales]) => ({ vendor, sales }));
+        return Object.entries(vMap).map(([vendor, salesRevenue]) => ({ vendor, sales: salesRevenue }));
     }, [sales]);
 
     const handleExport = (type) => {
@@ -133,13 +132,12 @@ const BookSalesReports = () => {
 
     return (
         <div className="bs-page">
-            {/* Header */}
             <div className="bs-page-header">
                 <div>
                     <h4 className="bs-page-title">📊 Reports & Analytics</h4>
                     <nav className="bs-breadcrumb">
-                        <Link to="/school/dashboard">Dashboard</Link><span>/</span>
-                        <Link to="/school/book-sales">Book Sales</Link><span>/</span>
+                        <Link to="..">Dashboard</Link><span>/</span>
+                        <Link to="..">Book Sales</Link><span>/</span>
                         <span className="bs-breadcrumb-current">Reports</span>
                     </nav>
                 </div>
@@ -149,7 +147,6 @@ const BookSalesReports = () => {
                 </div>
             </div>
 
-            {/* Filters */}
             <div className="bs-card">
                 <div className="bs-card-header">
                     <h5 className="bs-card-title">🔍 Filters</h5>
@@ -185,7 +182,6 @@ const BookSalesReports = () => {
                 </div>
             </div>
 
-            {/* KPI Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
                 {[
                     { label: 'Total Books Sold', value: sales.reduce((a, s) => a + Number(s.qty), 0), icon: '📚', color: '#3d5ee1', bg: '#eef1fd', sub: 'All time' },
@@ -204,9 +200,7 @@ const BookSalesReports = () => {
                 ))}
             </div>
 
-            {/* Charts Row */}
             <div className="bs-row bs-row-2">
-                {/* Monthly Sales Trend */}
                 <div className="bs-card">
                     <div className="bs-card-header">
                         <h5 className="bs-card-title">📈 Monthly Sales Trend</h5>
@@ -226,7 +220,6 @@ const BookSalesReports = () => {
                     </div>
                 </div>
 
-                {/* Vendor-wise Sales */}
                 <div className="bs-card">
                     <div className="bs-card-header">
                         <h5 className="bs-card-title">🏢 Vendor-wise Revenue</h5>
@@ -245,7 +238,6 @@ const BookSalesReports = () => {
                 </div>
             </div>
 
-            {/* Data Tables */}
             <div className="bs-card">
                 <div className="bs-card-header">
                     <h5 className="bs-card-title">📋 Detailed Reports</h5>
@@ -265,7 +257,6 @@ const BookSalesReports = () => {
                     </div>
                 </div>
 
-                {/* Sales-wise (Transactions) */}
                 {activeTab === 'sales' && (
                     <div className="bs-table-wrap">
                         <table className="bs-table">
@@ -317,7 +308,6 @@ const BookSalesReports = () => {
                     </div>
                 )}
 
-                {/* Student-wise */}
                 {activeTab === 'student' && (
                     <div className="bs-table-wrap">
                         <table className="bs-table">
@@ -345,7 +335,6 @@ const BookSalesReports = () => {
                     </div>
                 )}
 
-                {/* Vendor-wise */}
                 {activeTab === 'vendor' && (
                     <div className="bs-table-wrap">
                         <table className="bs-table">
@@ -375,7 +364,6 @@ const BookSalesReports = () => {
                     </div>
                 )}
 
-                {/* Book-wise */}
                 {activeTab === 'book' && (
                     <div className="bs-table-wrap">
                         <table className="bs-table">
