@@ -1,10 +1,11 @@
-import React, { useContext, useState, useMemo, useEffect } from 'react';
+import React, { useContext, useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { IconCash, IconEye, IconTrash, IconX } from '@tabler/icons-react';
+import { IconCash, IconEye, IconTrash, IconX, IconPrinter } from '@tabler/icons-react';
 import { salesService } from '../../../api/sales';
 import { inventoryService } from '../../../api/inventory';
 import { AcademicsContext } from '../../../context/AcademicsContext';
 import SaveFeedbackOverlay from './SaveFeedbackOverlay';
+import BillPrint from './BillPrint';
 import './BookSales.css';
 import './SalesEntry.css';
 
@@ -112,6 +113,8 @@ const SalesEntry = () => {
 
     const [search, setSearch] = useState('');
     const [filterClass, setFilterClass] = useState('All');
+    const [printSale, setPrintSale] = useState(null);
+    const printRef = useRef();
 
     const visibleBooks = useMemo(() =>
         inventory.filter(b => {
@@ -281,6 +284,48 @@ const SalesEntry = () => {
         }
     };
 
+    const handlePrintBill = (sale) => {
+        setPrintSale(sale);
+        setTimeout(() => {
+            if (printRef.current) {
+                const printWindow = window.open('', '_blank');
+                const printContent = printRef.current.innerHTML;
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Bill - ${sale.student}</title>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <style>
+                            ${Array.from(document.styleSheets)
+                                .map(sheet => {
+                                    try {
+                                        return Array.from(sheet.cssRules || sheet.rules)
+                                            .map(rule => rule.cssText)
+                                            .join('\n');
+                                    } catch (e) {
+                                        return '';
+                                    }
+                                })
+                                .join('\n')}
+                        </style>
+                    </head>
+                    <body>
+                        ${printContent}
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                    printWindow.close();
+                }, 250);
+            }
+        }, 100);
+    };
+
     const filtered = sales.filter(s =>
         (filterClass === 'All' || s.class === filterClass) &&
         (s.student.toLowerCase().includes(search.toLowerCase()) ||
@@ -419,6 +464,9 @@ const SalesEntry = () => {
                                     <td style={{ color: 'var(--bs-muted)' }}>{s.date}</td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                            <button className="bs-btn-icon bs-btn-icon-view" title="Print Bill" onClick={() => handlePrintBill(s)}>
+                                                <IconPrinter size={16} />
+                                            </button>
                                             <button className="bs-btn-icon bs-btn-icon-view" title="View Bill" onClick={() => setViewSale(s)}>
                                                 <IconEye size={16} />
                                             </button>
@@ -668,14 +716,46 @@ const SalesEntry = () => {
                         </div>
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={handleClose}>Cancel</button>
-                            <button
-                                className="bs-btn bs-btn-success bs-btn-animated"
-                                disabled={!student.name || cartItems.length === 0}
-                                style={{ opacity: (!student.name || cartItems.length === 0) ? 0.5 : 1, cursor: (!student.name || cartItems.length === 0) ? 'not-allowed' : 'pointer' }}
-                                onClick={handleSubmit}
-                            >
-                                ✔ Submit Sale ({cartBookCount > 0 ? `${cartBookCount} books · ₹${cartTotal.toLocaleString()}` : '—'})
-                            </button>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                <button
+                                    className="bs-btn bs-btn-info bs-btn-animated"
+                                    disabled={!student.name || cartItems.length === 0}
+                                    style={{ opacity: (!student.name || cartItems.length === 0) ? 0.5 : 1, cursor: (!student.name || cartItems.length === 0) ? 'not-allowed' : 'pointer' }}
+                                    onClick={() => {
+                                        const tempSale = {
+                                            student: student.name,
+                                            phone: student.phone,
+                                            class: student.class,
+                                            section: student.section,
+                                            payment: student.payment,
+                                            items: cartItems.map(item => ({
+                                                name: item.book.name,
+                                                qty: item.qty,
+                                                price: item.book.sellingPrice,
+                                                total: item.book.sellingPrice * item.qty,
+                                                type: item.type
+                                            })),
+                                            totalAmount: cartTotal,
+                                            concession: Number(student.concession || 0),
+                                            paid: Number(student.paidAmount || 0),
+                                            balance: cartTotal - Number(student.concession || 0) - Number(student.paidAmount || 0)
+                                        };
+                                        handlePrintBill(tempSale);
+                                    }}
+                                    title="Preview and print bill"
+                                >
+                                    <IconPrinter size={18} />
+                                    Print Preview
+                                </button>
+                                <button
+                                    className="bs-btn bs-btn-success bs-btn-animated"
+                                    disabled={!student.name || cartItems.length === 0}
+                                    style={{ opacity: (!student.name || cartItems.length === 0) ? 0.5 : 1, cursor: (!student.name || cartItems.length === 0) ? 'not-allowed' : 'pointer' }}
+                                    onClick={handleSubmit}
+                                >
+                                    ✔ Submit Sale ({cartBookCount > 0 ? `${cartBookCount} books · ₹${cartTotal.toLocaleString()}` : '—'})
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -796,6 +876,62 @@ const SalesEntry = () => {
                             <button className="bs-btn bs-btn-success bs-btn-animated" onClick={handlePaySubmit}>
                                 <IconCash size={16} />
                                 Update Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {printSale && (
+                <div className="bs-modal-overlay" onClick={() => setPrintSale(null)}>
+                    <div className="bs-modal bs-modal-print" onClick={e => e.stopPropagation()}>
+                        <div className="bs-modal-header">
+                            <h5 className="bs-modal-title">🖨️ Print Bill - {printSale.student}</h5>
+                            <button className="bs-modal-close" onClick={() => setPrintSale(null)}>×</button>
+                        </div>
+                        <div className="bs-modal-body" style={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}>
+                            <BillPrint ref={printRef} sale={printSale} />
+                        </div>
+                        <div className="bs-modal-footer">
+                            <button className="bs-btn bs-btn-outline" onClick={() => setPrintSale(null)}>Close</button>
+                            <button 
+                                className="bs-btn bs-btn-primary bs-btn-animated"
+                                onClick={() => {
+                                    if (printRef.current) {
+                                        const printWindow = window.open('', '_blank');
+                                        const printContent = printRef.current.innerHTML;
+                                        printWindow.document.write(`
+                                            <!DOCTYPE html>
+                                            <html>
+                                            <head>
+                                                <title>Bill - ${printSale.student}</title>
+                                                <meta charset="UTF-8">
+                                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                <style>
+                                                    ${Array.from(document.styleSheets)
+                                                        .map(sheet => {
+                                                            try {
+                                                                return Array.from(sheet.cssRules || sheet.rules)
+                                                                    .map(rule => rule.cssText)
+                                                                    .join('\n');
+                                                            } catch (e) {
+                                                                return '';
+                                                            }
+                                                        })
+                                                        .join('\n')}
+                                                </style>
+                                            </head>
+                                            <body onload="window.focus(); window.print();">
+                                                ${printContent}
+                                            </body>
+                                            </html>
+                                        `);
+                                        printWindow.document.close();
+                                    }
+                                }}
+                            >
+                                <IconPrinter size={16} />
+                                Print Bill
                             </button>
                         </div>
                     </div>
