@@ -1,12 +1,13 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { IconCash, IconEye, IconTrash, IconX } from '@tabler/icons-react';
 import { salesService } from '../../../api/sales';
 import { inventoryService } from '../../../api/inventory';
+import { AcademicsContext } from '../../../context/AcademicsContext';
+import SaveFeedbackOverlay from './SaveFeedbackOverlay';
 import './BookSales.css';
 import './SalesEntry.css';
 
-const classes = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
-    'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
 const paymentMethods = ['Cash', 'UPI', 'Cheque', 'Card', 'Bank Transfer'];
 const today = new Date().toISOString().split('T')[0];
 
@@ -21,22 +22,35 @@ const StockBadge = ({ book }) => {
 
 const emptySelected = {};
 const emptyStudent = { 
-    name: '', phone: '', class: 'Class 10', payment: 'Cash', date: today,
+    name: '', phone: '', class: '', section: '', payment: 'Cash', date: today,
     paidAmount: 0, concession: 0 
 };
 
 const SalesEntry = () => {
+    const { classes, sections } = useContext(AcademicsContext);
+    const classOptions = useMemo(
+        () => classes.filter(c => (c.academicStatus || 'Active') === 'Active'),
+        [classes]
+    );
+    const classNames = useMemo(() => classOptions.map(c => c.name), [classOptions]);
     const [sales, setSales] = useState([]);
     const [inventory, setInventory] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [saveState, setSaveState] = useState('idle');
     const [student, setStudent] = useState(emptyStudent);
     const [viewSale, setViewSale] = useState(null);
+    const [paySale, setPaySale] = useState(null);
+    const [payAmount, setPayAmount] = useState('');
     const [selected, setSelected] = useState(emptySelected);
     const [bookSearch, setBookSearch] = useState('');
+    const selectedClassMeta = classOptions.find(c => c.name === student.class);
+    const sectionOptions = selectedClassMeta
+        ? sections.filter(s => Number(s.classId) === Number(selectedClassMeta.id) && (s.academicStatus || 'Active') === 'Active')
+        : [];
 
     const fetchInventory = () => {
-        inventoryService.getAll().then(data => {
+        return inventoryService.getAll().then(data => {
             const mapped = data.map(b => ({
                 id: b.id,
                 name: b.name,
@@ -51,7 +65,7 @@ const SalesEntry = () => {
     };
 
     const fetchSales = () => {
-        salesService.getAll().then(data => {
+        return salesService.getAll().then(data => {
             const mapped = data.map(s => {
                 const total = Number(s.total_amount) || 0;
                 const paid = Number(s.paid_amount) || 0;
@@ -63,9 +77,11 @@ const SalesEntry = () => {
 
                 return ({
                 id: s.id,
+                book_id: s.book_id,
                 student: s.student_name,
                 phone: s.student_phone || '',
                 class: s.student_class || s.class,
+                section: s.student_section || '',
                 book: s.book_name,
                 qty: s.qty,
                 type: s.book_type,
@@ -75,6 +91,7 @@ const SalesEntry = () => {
                 concession,
                 balance,
                 payment: s.payment_method,
+                book_selection: s.book_selection || 'Single',
                 date: s.date ? new Date(s.date).toISOString().split('T')[0] : today,
             });
             });
@@ -86,6 +103,12 @@ const SalesEntry = () => {
         fetchInventory();
         fetchSales();
     }, []);
+
+    useEffect(() => {
+        if (!student.class && classNames.length > 0) {
+            setStudent(prev => ({ ...prev, class: classNames[0] }));
+        }
+    }, [classNames, student.class]);
 
     const [search, setSearch] = useState('');
     const [filterClass, setFilterClass] = useState('All');
@@ -137,6 +160,10 @@ const SalesEntry = () => {
     const handleSubmit = async () => {
         if (!student.name || cartItems.length === 0) return;
 
+        setSaveState('saving');
+        const startTime = Date.now();
+        setShowModal(false);
+
         try {
             const totalBill = cartTotal - Number(student.concession || 0);
             const remaining = totalBill - Number(student.paidAmount || 0);
@@ -147,6 +174,7 @@ const SalesEntry = () => {
                     student_name: student.name,
                     student_phone: student.phone,
                     class: student.class,
+                    student_section: student.section || null,
                     book_name: item.book.name,
                     book_type: item.type,
                     qty: item.qty,
@@ -162,14 +190,19 @@ const SalesEntry = () => {
 
             await Promise.all(promises);
 
-            fetchSales();
-            fetchInventory();
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 800) await new Promise(resolve => setTimeout(resolve, 800 - elapsed));
+
+            await Promise.all([fetchSales(), fetchInventory()]);
             setSelected(emptySelected);
             setStudent(emptyStudent);
-            setShowModal(false);
             setSubmitted(true);
+            setSaveState('success');
             setTimeout(() => setSubmitted(false), 3500);
+            setTimeout(() => setSaveState('idle'), 2500);
         } catch (err) {
+            setSaveState('idle');
+            setShowModal(true);
             console.error('Error recording sale:', err);
             alert('Failed to record sale. Please check your connection and try again.');
         }
@@ -182,6 +215,72 @@ const SalesEntry = () => {
         setBookSearch('');
     };
 
+    const openPayModal = (sale) => {
+        setPaySale(sale);
+        setPayAmount(sale.balance > 0 ? String(sale.balance) : '');
+    };
+
+    const closePayModal = () => {
+        setPaySale(null);
+        setPayAmount('');
+    };
+
+    const handlePaySubmit = async () => {
+        if (!paySale) return;
+
+        const amount = Number(payAmount);
+        if (!amount || amount <= 0) {
+            alert('Please enter a valid payment amount.');
+            return;
+        }
+
+        const currentBalance = Number(paySale.balance) || 0;
+        const appliedAmount = Math.min(amount, currentBalance);
+        const newPaid = (Number(paySale.paid) || 0) + appliedAmount;
+        const newBalance = Math.max(currentBalance - appliedAmount, 0);
+
+        try {
+            const updates = paySale.records.map(record => salesService.update(record.id, {
+                book_id: record.book_id,
+                student_name: record.student,
+                student_phone: record.phone,
+                class: record.class,
+                student_section: record.section || null,
+                book_name: record.book,
+                book_type: record.type,
+                qty: record.qty,
+                unit_price: record.price,
+                total_amount: record.total,
+                paid_amount: newPaid,
+                concession: record.concession,
+                remaining_amount: newBalance,
+                payment_method: record.payment,
+                book_selection: record.book_selection || 'Single'
+            }));
+
+            await Promise.all(updates);
+            closePayModal();
+            fetchSales();
+        } catch (err) {
+            console.error('Error updating payment:', err);
+            alert('Failed to update payment. Please try again.');
+        }
+    };
+
+    const handleDeleteSale = async (sale) => {
+        const confirmed = window.confirm(`Delete sale record for ${sale.student}? This will remove all books in this bill.`);
+        if (!confirmed) return;
+
+        try {
+            await Promise.all(sale.records.map(record => salesService.delete(record.id)));
+            fetchSales();
+            fetchInventory();
+        } catch (err) {
+            console.error('Error deleting sale:', err);
+            alert('Failed to delete sale. Please try again.');
+        }
+    };
+
     const filtered = sales.filter(s =>
         (filterClass === 'All' || s.class === filterClass) &&
         (s.student.toLowerCase().includes(search.toLowerCase()) ||
@@ -192,12 +291,13 @@ const SalesEntry = () => {
     const groupedSales = useMemo(() => {
         const groups = {};
         filtered.forEach(s => {
-            const key = `${s.student}-${s.phone}-${s.class}-${s.date}-${s.payment}`;
+            const key = `${s.student}-${s.phone}-${s.class}-${s.section || ''}-${s.date}-${s.payment}`;
             if (!groups[key]) {
                 groups[key] = {
                     ...s,
                     books: [s.book],
                     items: [{ name: s.book, qty: s.qty, price: s.price, total: Number(s.price) * Number(s.qty) }],
+                    records: [s],
                     totalQty: s.qty,
                     totalAmount: Number(s.price) * Number(s.qty),
                     paid: s.paid,
@@ -208,6 +308,7 @@ const SalesEntry = () => {
             } else {
                 groups[key].books.push(s.book);
                 groups[key].items.push({ name: s.book, qty: s.qty, price: s.price, total: Number(s.price) * Number(s.qty) });
+                groups[key].records.push(s);
                 groups[key].totalQty += s.qty;
                 groups[key].totalAmount += Number(s.price) * Number(s.qty);
                 groups[key].types.add(s.type);
@@ -220,6 +321,8 @@ const SalesEntry = () => {
 
     return (
         <div className="bs-page">
+            <SaveFeedbackOverlay state={saveState} type="sale" />
+
             <div className="bs-page-header">
                 <div>
                     <h4 className="bs-page-title">🧾 Sales Entry</h4>
@@ -229,7 +332,7 @@ const SalesEntry = () => {
                         <span className="bs-breadcrumb-current">Sales Entry</span>
                     </nav>
                 </div>
-                <button className="bs-btn bs-btn-primary" onClick={() => setShowModal(true)}>
+                <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={() => setShowModal(true)}>
                     ＋ New Sale Entry
                 </button>
             </div>
@@ -270,7 +373,7 @@ const SalesEntry = () => {
                         </div>
                         <select className="bs-select" value={filterClass} onChange={e => setFilterClass(e.target.value)}>
                             <option>All</option>
-                            {classes.map(c => <option key={c}>{c}</option>)}
+                            {classNames.map(c => <option key={c}>{c}</option>)}
                         </select>
                     </div>
                 </div>
@@ -282,6 +385,7 @@ const SalesEntry = () => {
                                 <th>Student Name</th>
                                 <th>Phone</th>
                                 <th>Class</th>
+                                <th>Section</th>
                                 <th>Books</th>
                                 <th>Total Bill</th>
                                 <th>Paid</th>
@@ -293,13 +397,14 @@ const SalesEntry = () => {
                         </thead>
                         <tbody>
                             {groupedSales.length === 0 ? (
-                                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No records found.</td></tr>
+                                <tr><td colSpan={12} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No records found.</td></tr>
                             ) : groupedSales.map((s, i) => (
                                 <tr key={i}>
                                     <td style={{ color: 'var(--bs-muted)' }}>{i + 1}</td>
                                     <td style={{ fontWeight: 600 }}>{s.student}</td>
                                     <td style={{ color: 'var(--bs-muted)' }}>{s.phone || '-'}</td>
                                     <td><span className="bs-badge bs-badge-blue">{s.class}</span></td>
+                                    <td style={{ color: 'var(--bs-muted)' }}>{s.section || '-'}</td>
                                     <td style={{ color: 'var(--bs-muted)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {s.books.join(', ')}
                                     </td>
@@ -313,9 +418,29 @@ const SalesEntry = () => {
                                     </td>
                                     <td style={{ color: 'var(--bs-muted)' }}>{s.date}</td>
                                     <td>
-                                        <button className="bs-btn-icon bs-btn-icon-view" title="View Bill" onClick={() => setViewSale(s)}>
-                                            👁
-                                        </button>
+                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                            <button className="bs-btn-icon bs-btn-icon-view" title="View Bill" onClick={() => setViewSale(s)}>
+                                                <IconEye size={16} />
+                                            </button>
+                                            {s.balance > 0 && (
+                                                <button
+                                                    className="bs-btn bs-btn-success"
+                                                    style={{ padding: '7px 12px', gap: 6, minHeight: 34 }}
+                                                    title="Pay Due"
+                                                    onClick={() => openPayModal(s)}
+                                                >
+                                                    <IconCash size={16} />
+                                                    Pay
+                                                </button>
+                                            )}
+                                            <button
+                                                className="bs-btn-icon bs-btn-icon-delete"
+                                                title="Delete Sale"
+                                                onClick={() => handleDeleteSale(s)}
+                                            >
+                                                <IconTrash size={16} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -358,8 +483,22 @@ const SalesEntry = () => {
                                     <div className="bs-form-group">
                                         <label className="bs-form-label">Class</label>
                                         <select className="bs-form-select" value={student.class}
-                                            onChange={e => setStudent({ ...student, class: e.target.value })}>
-                                            {classes.map(c => <option key={c}>{c}</option>)}
+                                            onChange={e => setStudent({ ...student, class: e.target.value, section: '' })}>
+                                            {classNames.map(c => <option key={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="bs-form-group">
+                                        <label className="bs-form-label">Section <span style={{ color: 'var(--bs-muted)' }}>(optional)</span></label>
+                                        <select
+                                            className="bs-form-select"
+                                            value={student.section}
+                                            onChange={e => setStudent({ ...student, section: e.target.value })}
+                                            disabled={sectionOptions.length === 0}
+                                        >
+                                            <option value="">{sectionOptions.length === 0 ? 'No sections for this class' : 'No section'}</option>
+                                            {sectionOptions.map(section => (
+                                                <option key={section.id} value={section.name}>{section.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="bs-form-group">
@@ -530,7 +669,7 @@ const SalesEntry = () => {
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={handleClose}>Cancel</button>
                             <button
-                                className="bs-btn bs-btn-success"
+                                className="bs-btn bs-btn-success bs-btn-animated"
                                 disabled={!student.name || cartItems.length === 0}
                                 style={{ opacity: (!student.name || cartItems.length === 0) ? 0.5 : 1, cursor: (!student.name || cartItems.length === 0) ? 'not-allowed' : 'pointer' }}
                                 onClick={handleSubmit}
@@ -562,6 +701,10 @@ const SalesEntry = () => {
                                 <div className="se-bill-view-section">
                                     <label>Class</label>
                                     <div className="se-bill-view-value">{viewSale.class}</div>
+                                </div>
+                                <div className="se-bill-view-section">
+                                    <label>Section</label>
+                                    <div className="se-bill-view-value">{viewSale.section || '-'}</div>
                                 </div>
                                 <div className="se-bill-view-divider" />
                                 <div className="se-bill-view-items-header">
@@ -599,6 +742,61 @@ const SalesEntry = () => {
                         </div>
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-primary" onClick={() => setViewSale(null)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {paySale && (
+                <div className="bs-modal-overlay" onClick={closePayModal}>
+                    <div className="bs-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 460 }}>
+                        <div className="bs-modal-header">
+                            <h5 className="bs-modal-title">Update Due Payment</h5>
+                            <button className="bs-modal-close" onClick={closePayModal}><IconX size={18} /></button>
+                        </div>
+                        <div className="bs-modal-body">
+                            <div className="se-bill-view" style={{ marginBottom: 18 }}>
+                                <div className="se-bill-view-section">
+                                    <label>Student</label>
+                                    <div className="se-bill-view-value">{paySale.student}</div>
+                                </div>
+                                <div className="se-bill-view-footer">
+                                    <div className="se-bill-view-row">
+                                        <span>Total Bill</span>
+                                        <span>₹{paySale.totalAmount.toLocaleString()}</span>
+                                    </div>
+                                    <div className="se-bill-view-row">
+                                        <span>Already Paid</span>
+                                        <span style={{ color: '#28c76f', fontWeight: 700 }}>₹{paySale.paid.toLocaleString()}</span>
+                                    </div>
+                                    <div className="se-bill-view-row se-bill-view-total">
+                                        <span>Current Due</span>
+                                        <span style={{ color: '#ea5455' }}>₹{paySale.balance.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bs-form-group">
+                                <label className="bs-form-label">Amount Paying Now</label>
+                                <input
+                                    className="bs-form-input"
+                                    type="number"
+                                    min="1"
+                                    max={paySale.balance}
+                                    value={payAmount}
+                                    onChange={e => setPayAmount(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+                            <div style={{ color: 'var(--bs-muted)', fontSize: 13 }}>
+                                New due will be ₹{Math.max((Number(paySale.balance) || 0) - (Number(payAmount) || 0), 0).toLocaleString()}.
+                            </div>
+                        </div>
+                        <div className="bs-modal-footer">
+                            <button className="bs-btn bs-btn-outline" onClick={closePayModal}>Cancel</button>
+                            <button className="bs-btn bs-btn-success bs-btn-animated" onClick={handlePaySubmit}>
+                                <IconCash size={16} />
+                                Update Payment
+                            </button>
                         </div>
                     </div>
                 </div>

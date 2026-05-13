@@ -1,8 +1,11 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useEffect, useMemo, useState } from 'react';
 
 export const AcademicsContext = createContext();
 
 export const AcademicsProvider = ({ children }) => {
+    const tenantId = localStorage.getItem('tenant_id') || 'default';
+    const storageKey = `academics_master_${tenantId}`;
+
     // Master list for subject selection
     const masterSubjects = [
         'Mathematics', 'Science', 'English', 'History', 'Geography',
@@ -11,7 +14,7 @@ export const AcademicsProvider = ({ children }) => {
     ];
 
     // Initial Mock Data for Classes
-    const [classes, setClasses] = useState([
+    const defaultClasses = [
         { id: 1, name: 'Class 1', numeric: 1, academicStatus: 'Active' },
         { id: 2, name: 'Class 2', numeric: 2, academicStatus: 'Active' },
         { id: 3, name: 'Class 3', numeric: 3, academicStatus: 'Active' },
@@ -22,14 +25,26 @@ export const AcademicsProvider = ({ children }) => {
         { id: 8, name: 'Class 8', numeric: 8, academicStatus: 'Active' },
         { id: 9, name: 'Class 9', numeric: 9, academicStatus: 'Active' },
         { id: 10, name: 'Class 10', numeric: 10, academicStatus: 'Active' },
-    ]);
+    ];
 
-    // Initial Mock Data for Sections
-    const [sections, setSections] = useState([
+    const defaultSections = [
         { id: 1, name: 'A', classId: 1, category: 'General', capacity: 40, teacherId: 1, note: 'Primary section', academicStatus: 'Active' },
         { id: 2, name: 'B', classId: 1, category: 'General', capacity: 35, teacherId: 2, note: '', academicStatus: 'Active' },
         { id: 3, name: 'C', classId: 2, category: 'Special', capacity: 30, teacherId: 3, note: 'Evening shift', academicStatus: 'Active' },
-    ]);
+    ];
+
+    const savedAcademics = useMemo(() => {
+        try {
+            return JSON.parse(localStorage.getItem(storageKey) || '{}');
+        } catch {
+            return {};
+        }
+    }, [storageKey]);
+
+    const [classes, setClasses] = useState(savedAcademics.classes || defaultClasses);
+
+    // Initial Mock Data for Sections
+    const [sections, setSections] = useState(savedAcademics.sections || defaultSections);
 
     // Initial Mock Data for Subjects
     const [subjects, setSubjects] = useState([
@@ -59,6 +74,10 @@ export const AcademicsProvider = ({ children }) => {
     ]);
     const [homework, setHomework] = useState([]);
     const [promotions, setPromotions] = useState([]);
+
+    useEffect(() => {
+        localStorage.setItem(storageKey, JSON.stringify({ classes, sections }));
+    }, [classes, sections, storageKey]);
 
     const addClass = (newClass) => {
         setClasses([...classes, { ...newClass, id: Date.now(), academicStatus: newClass.academicStatus || 'Active' }]);

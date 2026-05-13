@@ -16,7 +16,7 @@ const BookTypes = () => {
                         <span className="bs-breadcrumb-current">Book Types</span>
                     </nav>
                 </div>
-                <button className="bs-btn bs-btn-primary">＋ Add New Type</button>
+                <button className="bs-btn bs-btn-primary bs-btn-animated">＋ Add New Type</button>
             </div>
 
             <div className="bs-card">

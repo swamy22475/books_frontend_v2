@@ -19,6 +19,14 @@ const getStatus = (pct) => {
 
 const today = new Date().toISOString().split('T')[0];
 const emptyForm = { book: '', vendor: '', received: '', date: today, invoice: '', remarks: '' };
+const formatDate = (value) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value).split('T')[0] : date.toISOString().split('T')[0];
+};
+const displayValue = (value, fallback = '—') => (
+    value === null || value === undefined || value === '' ? fallback : value
+);
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const StockIn = () => {
@@ -55,15 +63,23 @@ const StockIn = () => {
             }));
             setInventory(mapped);
             setVendorList(vendors);
-            setLog(stockLog.map(s => ({
-                id: s.id,
-                book: s.book_name,
-                vendor: s.vendor_name,
-                received: s.quantity,
-                date: s.date ? new Date(s.date).toISOString().split('T')[0] : today,
-                invoice: s.invoice_no,
-                remarks: s.remarks
-            })));
+            setLog(stockLog
+                .filter(s => (s.movement_type || (Number(s.quantity) >= 0 ? 'stock_in' : 'sale')) === 'stock_in')
+                .map(s => {
+                    const book = mapped.find(b => Number(b.id) === Number(s.book_id));
+                    const vendor = vendors.find(v => Number(v.id) === Number(s.vendor_id));
+                    return {
+                        id: s.id,
+                        book: s.book_name || book?.name || `Book #${s.book_id}`,
+                        bookClass: s.book_class || book?.book_class || '',
+                        bookType: s.book_type || book?.type || '',
+                        vendor: s.vendor_name || vendor?.name || book?.vendor || '',
+                        received: Number(s.quantity) || 0,
+                        date: formatDate(s.date),
+                        invoice: s.invoice_no,
+                        remarks: s.remarks
+                    };
+                }));
 
             if (mapped.length > 0 && !form.book) setForm(f => ({ ...f, book: mapped[0].name }));
             if (vendors.length > 0 && !form.vendor) setForm(f => ({ ...f, vendor: vendors[0].name }));
@@ -104,10 +120,10 @@ const StockIn = () => {
 
     const handleSubmit = async () => {
         if (!form.book || !form.received || saving) return;
-        
+
         const selectedBook = inventory.find(b => b.name === form.book);
         const selectedVendor = vendorList.find(v => v.name === form.vendor);
-        
+
         if (!selectedBook) return;
 
         setSaving(true);
@@ -119,10 +135,11 @@ const StockIn = () => {
                 vendor_name: selectedVendor?.name || form.vendor,
                 quantity: Number(form.received),
                 invoice_no: form.invoice,
-                date: form.date,
-                remarks: form.remarks
+                date: form.date ? `${form.date}T00:00:00` : null,
+                remarks: form.remarks,
+                movement_type: 'stock_in'
             };
-            
+
             await stockService.create(payload);
             await load(); // Reload all data
             setForm(emptyForm);
@@ -221,7 +238,7 @@ const StockIn = () => {
                             </div>
                             <select className="bs-select" value={filterClass} onChange={e => setFilterClass(e.target.value)}>
                                 <option value="All">All Classes</option>
-                                {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                                     <option key={n} value={`Class ${n}`}>Class {n}</option>
                                 ))}
                             </select>
@@ -296,8 +313,8 @@ const StockIn = () => {
                                             {/* Remaining */}
                                             <td style={{ textAlign: 'center' }}>
                                                 <span className={`si-count ${item.pct === 0 ? 'si-count-red' :
-                                                        item.pct < 30 ? 'si-count-orange' :
-                                                            'si-count-teal'
+                                                    item.pct < 30 ? 'si-count-orange' :
+                                                        'si-count-teal'
                                                     }`}>{item.stock}</span>
                                             </td>
 
@@ -353,7 +370,7 @@ const StockIn = () => {
                 <div className="bs-card">
                     <div className="bs-card-header">
                         <h5 className="bs-card-title">📥 Stock-In Receipts</h5>
-                        <button className="bs-btn bs-btn-primary bs-btn-sm" onClick={() => setShowModal(true)}>
+                        <button className="bs-btn bs-btn-primary bs-btn-sm bs-btn-animated" onClick={() => setShowModal(true)}>
                             ＋ Add Entry
                         </button>
                     </div>
@@ -374,18 +391,30 @@ const StockIn = () => {
                                 {log.map((entry, i) => (
                                     <tr key={entry.id}>
                                         <td style={{ color: 'var(--bs-muted)' }}>{i + 1}</td>
-                                        <td style={{ fontWeight: 600 }}>{entry.book}</td>
-                                        <td style={{ color: 'var(--bs-muted)', fontSize: 12 }}>{entry.vendor}</td>
+                                        <td>
+                                            <div className="si-log-book-name">{entry.book}</div>
+                                            {(entry.bookClass || entry.bookType) && (
+                                                <div className="si-log-book-meta">
+                                                    {[entry.bookClass, entry.bookType].filter(Boolean).join(' • ')}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td style={{ color: 'var(--bs-muted)', fontSize: 12 }}>{displayValue(entry.vendor)}</td>
                                         <td style={{ textAlign: 'center' }}>
                                             <span className="si-count si-count-blue">{entry.received}</span>
                                         </td>
                                         <td>
-                                            <span className="bs-badge bs-badge-gray">{entry.invoice || '—'}</span>
+                                            <span className="bs-badge bs-badge-gray">{displayValue(entry.invoice)}</span>
                                         </td>
                                         <td style={{ color: 'var(--bs-muted)' }}>{entry.date}</td>
-                                        <td style={{ color: 'var(--bs-muted)', fontSize: 12 }}>{entry.remarks || '—'}</td>
+                                        <td style={{ color: 'var(--bs-muted)', fontSize: 12 }}>{displayValue(entry.remarks)}</td>
                                     </tr>
                                 ))}
+                                {log.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} className="si-empty-row">No stock-in entries found.</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -498,7 +527,7 @@ const StockIn = () => {
                         </div>
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="bs-btn bs-btn-primary" onClick={handleSubmit} disabled={saving}>
+                            <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={handleSubmit} disabled={saving}>
                                 {saving ? 'Saving...' : '✔ Save Entry'}
                             </button>
                         </div>

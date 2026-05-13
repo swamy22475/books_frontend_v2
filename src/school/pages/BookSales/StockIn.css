@@ -96,6 +96,21 @@
     text-overflow: ellipsis;
 }
 
+.si-log-book-name {
+    font-weight: 700;
+    color: var(--bs-text);
+    max-width: 260px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.si-log-book-meta {
+    margin-top: 2px;
+    color: var(--bs-muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
 .si-empty-row {
     text-align: center;
     padding: 40px !important;

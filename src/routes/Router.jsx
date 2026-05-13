@@ -26,6 +26,7 @@ const BookSalesSalesEntry = Loadable(lazy(() => import('../school/pages/BookSale
 const BookSalesReturns = Loadable(lazy(() => import('../school/pages/BookSales/Returns')));
 const BookSalesReports = Loadable(lazy(() => import('../school/pages/BookSales/BookSalesReports')));
 const BookSalesTypes = Loadable(lazy(() => import('../school/pages/BookSales/BookTypes')));
+const BookSalesClassesSections = Loadable(lazy(() => import('../school/pages/BookSales/ClassesSections')));
 
 const bookSalesRoutes = [
   { index: true, element: <BookSalesDashboard /> },
@@ -33,6 +34,7 @@ const bookSalesRoutes = [
   { path: 'inventory', element: <BookSalesInventory /> },
   { path: 'book-types', element: <BookSalesTypes /> },
   { path: 'stock-in', element: <BookSalesStockIn /> },
+  { path: 'classes-sections', element: <BookSalesClassesSections /> },
   { path: 'sales', element: <BookSalesSalesEntry /> },
   { path: 'returns', element: <BookSalesReturns /> },
   { path: 'reports', element: <BookSalesReports /> },

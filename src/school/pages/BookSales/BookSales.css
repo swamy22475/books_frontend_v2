@@ -308,6 +308,54 @@
     font-size: 12.5px;
 }
 
+.bs-btn-animated {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+    isolation: isolate;
+}
+
+.bs-btn-animated::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.16) 35%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0.16) 65%, transparent 100%);
+    transform: translateX(-120%) skewX(-18deg);
+    transition: transform 0.65s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.bs-btn-animated:hover::before {
+    transform: translateX(120%) skewX(-18deg);
+}
+
+.bs-btn-animated:hover {
+    transform: translateY(-2px) scale(1.015);
+}
+
+.bs-btn-animated:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.bs-btn-animated:not(:disabled) {
+    animation: bsButtonBreath 2.8s ease-in-out infinite;
+}
+
+.bs-btn-animated:disabled {
+    animation: none;
+    cursor: not-allowed;
+}
+
+@keyframes bsButtonBreath {
+    0%, 100% {
+        filter: saturate(1);
+    }
+    50% {
+        filter: saturate(1.18) brightness(1.04);
+    }
+}
+
 .bs-btn-icon {
     width: 34px;
     height: 34px;
@@ -976,4 +1024,114 @@
 .bs-btn-pay:hover {
     background: #7367f0;
     color: #fff;
+}
+
+/* Save feedback overlay used by add/save flows */
+.bs-save-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 15, 30, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.bs-save-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 48px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.4);
+    min-width: 300px;
+    text-align: center;
+    animation: bsSavePopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.bs-save-spinner {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 5px solid #e8eaf6;
+    border-top-color: #6366f1;
+    animation: bsSaveSpin 0.8s linear infinite;
+}
+
+.bs-save-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+
+.bs-save-detail {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.bs-save-check-wrap {
+    position: relative;
+    width: 90px;
+    height: 90px;
+}
+
+.bs-save-pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.15);
+    animation: bsSavePulseRing 1.2s ease-out infinite;
+}
+
+.bs-save-circle {
+    animation: bsSaveCircleDraw 0.5s ease forwards;
+}
+
+.bs-save-check {
+    animation: bsSaveCheckDraw 0.4s 0.4s ease forwards;
+}
+
+.bs-save-success-copy {
+    animation: bsSaveFadeInUp 0.4s 0.6s both;
+}
+
+.bs-save-success-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #10b981;
+    margin-bottom: 6px;
+}
+
+@keyframes bsSaveSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bsSavePopIn {
+    0% { transform: scale(0.4); opacity: 0; }
+    60% { transform: scale(1.15); opacity: 1; }
+    80% { transform: scale(0.92); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bsSaveCheckDraw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes bsSaveCircleDraw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes bsSaveFadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bsSavePulseRing {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    100% { transform: scale(1.6); opacity: 0; }
 }

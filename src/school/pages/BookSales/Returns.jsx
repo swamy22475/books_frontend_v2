@@ -7,7 +7,7 @@ import './SalesEntry.css';
 
 const today = new Date().toISOString().split('T')[0];
 const reasons = ['Damaged pages', 'Wrong edition', 'Duplicate', 'Not needed', 'Wrong class', 'Defective binding', 'Other'];
-const emptyForm = { book_id: null, student: '', book: '', qty: 1, reason: reasons[0], date: today, student_class: '', unit_price: 0 };
+const emptyForm = { sale_id: null, book_id: null, student: '', book: '', qty: 1, reason: reasons[0], date: today, student_class: '', unit_price: 0 };
 
 const Returns = () => {
     const [returns, setReturns] = useState([]);
@@ -37,10 +37,14 @@ const Returns = () => {
             const data = await returnsService.getAll();
             const mapped = (Array.isArray(data) ? data : []).map(r => ({
                 id: r.id,
+                sale_id: r.sale_id,
+                book_id: r.book_id,
                 student: r.student_name,
                 class: r.student_class || r.class,
                 book: r.book_name,
                 qty: r.qty,
+                unit_price: r.unit_price || 0,
+                total_amount: r.total_amount || ((r.unit_price || 0) * (r.qty || 0)),
                 reason: r.reason,
                 date: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : today,
                 status: r.status
@@ -104,11 +108,14 @@ const Returns = () => {
         setLoading(true);
         try {
             const payload = {
+                sale_id: form.sale_id,
                 book_id: form.book_id,
                 student_name: form.student,
                 student_class: form.student_class,
                 book_name: form.book,
                 qty: Number(form.qty),
+                unit_price: Number(form.unit_price) || 0,
+                total_amount: (Number(form.unit_price) || 0) * (Number(form.qty) || 0),
                 reason: form.reason,
                 status: 'Pending'
             };
@@ -149,7 +156,7 @@ const Returns = () => {
                         <span className="bs-breadcrumb-current">Returns</span>
                     </nav>
                 </div>
-                <button className="bs-btn bs-btn-warning" onClick={() => setShowModal(true)}>
+                <button className="bs-btn bs-btn-warning bs-btn-animated" onClick={() => setShowModal(true)}>
                     ＋ Add Return
                 </button>
             </div>
@@ -316,7 +323,7 @@ const Returns = () => {
                                                         <div 
                                                             key={idx} 
                                                             className={`se-book-item ${form.book === s.book_name ? 'se-book-item-active' : ''}`}
-                                                            onClick={() => setForm({ ...form, book: s.book_name, book_id: s.book_id, unit_price: s.unit_price })}
+                                                            onClick={() => setForm({ ...form, sale_id: s.id, book: s.book_name, book_id: s.book_id, unit_price: s.unit_price })}
                                                         >
                                                             <div className="se-book-info">
                                                                 <div className="se-book-name">{s.book_name}</div>
@@ -357,7 +364,7 @@ const Returns = () => {
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={() => { setShowModal(false); setSelectedClass(''); setStudentSearch(''); }}>Cancel</button>
                             <button 
-                                className="bs-btn bs-btn-warning" 
+                                className="bs-btn bs-btn-warning bs-btn-animated" 
                                 onClick={handleSubmit}
                                 disabled={!form.student || !form.book || loading}
                                 style={{ opacity: (!form.student || !form.book || loading) ? 0.6 : 1 }}

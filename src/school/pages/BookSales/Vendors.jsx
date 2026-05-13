@@ -284,7 +284,7 @@ const Vendors = () => {
                         <span className="bs-breadcrumb-current">Vendors</span>
                     </nav>
                 </div>
-                <button className="bs-btn bs-btn-primary" onClick={openAdd}>
+                <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={openAdd}>
                     ＋ Add Vendor
                 </button>
             </div>
@@ -475,7 +475,7 @@ const Vendors = () => {
                         </div>
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="bs-btn bs-btn-primary" onClick={handleSubmit}>
+                            <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={handleSubmit}>
                                 {editId ? '✔ Update Vendor' : '✔ Add Vendor'}
                             </button>
                         </div>
@@ -514,7 +514,7 @@ const Vendors = () => {
                         </div>
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={() => setViewVendor(null)}>Close</button>
-                            <button className="bs-btn bs-btn-primary" onClick={() => { setViewVendor(null); openEdit(viewVendor); }}>Edit</button>
+                            <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={() => { setViewVendor(null); openEdit(viewVendor); }}>Edit</button>
                         </div>
                     </div>
                 </div>

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { inventoryService } from '../../../api/inventory';
 import { vendorService } from '../../../api/vendors';
+import { AcademicsContext } from '../../../context/AcademicsContext';
+import SaveFeedbackOverlay from './SaveFeedbackOverlay';
 import './BookSales.css';
 
 const emptyBook = {
@@ -9,7 +11,6 @@ const emptyBook = {
     cost_price: '', selling_price: '', stock_available: '', vendor_id: '', vendor_name: ''
 };
 const bookTypes = ['Set', 'Single'];
-const availableClasses = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
 
 const getStockStatus = (stock) => {
     const s = Number(stock);
@@ -51,6 +52,11 @@ const mapToBackend = (f) => ({
 });
 
 const Inventory = () => {
+    const { classes } = useContext(AcademicsContext);
+    const availableClasses = useMemo(
+        () => classes.filter(c => (c.academicStatus || 'Active') === 'Active').map(c => c.name),
+        [classes]
+    );
     const [books, setBooks] = useState([]);
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -61,6 +67,7 @@ const Inventory = () => {
     const [showModal, setShowModal] = useState(false);
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(emptyBook);
+    const [saveState, setSaveState] = useState('idle');
 
     const fetchBooks = async () => {
         try {
@@ -118,6 +125,11 @@ const Inventory = () => {
 
     const handleSubmit = async () => {
         if (!form.name) return;
+
+        setSaveState('saving');
+        const startTime = Date.now();
+        setShowModal(false);
+
         try {
             const payload = mapToBackend(form);
             if (editId) {
@@ -125,9 +137,18 @@ const Inventory = () => {
             } else {
                 await inventoryService.create(payload);
             }
-            fetchBooks();
-            setShowModal(false);
+
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 800) await new Promise(resolve => setTimeout(resolve, 800 - elapsed));
+
+            await fetchBooks();
+            setForm(emptyBook);
+            setEditId(null);
+            setSaveState('success');
+            setTimeout(() => setSaveState('idle'), 2500);
         } catch (err) {
+            setSaveState('idle');
+            setShowModal(true);
             const msg = err.message || 'Unknown error';
             console.error('Error saving book:', msg);
             alert(`Failed to save: ${msg}`);
@@ -152,6 +173,8 @@ const Inventory = () => {
 
     return (
         <div className="bs-page">
+            <SaveFeedbackOverlay state={saveState} type="inventory" />
+
             <div className="bs-page-header">
                 <div>
                     <h4 className="bs-page-title">📦 Book Inventory</h4>
@@ -161,7 +184,7 @@ const Inventory = () => {
                         <span className="bs-breadcrumb-current">Inventory</span>
                     </nav>
                 </div>
-                <button className="bs-btn bs-btn-primary" onClick={openAdd}>
+                <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={openAdd}>
                     ＋ Add Stock
                 </button>
             </div>
@@ -360,7 +383,7 @@ const Inventory = () => {
                         </div>
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button className="bs-btn bs-btn-primary" onClick={handleSubmit}>
+                            <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={handleSubmit}>
                                 {editId ? '✔ Update Book' : '✔ Add Stock'}
                             </button>
                         </div>
