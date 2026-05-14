@@ -3,7 +3,7 @@ import api from './axios';
 const PREFIX = '/api/v1/returns';
 
 export const returnsService = {
-  getAll: (skip = 0, limit = 100) => 
+  getAll: (skip = 0, limit = 10000) => 
     api.get(`${PREFIX}/?skip=${skip}&limit=${limit}`),
 
   create: (data) => 

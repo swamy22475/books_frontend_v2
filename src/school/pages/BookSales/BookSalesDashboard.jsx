@@ -38,7 +38,7 @@ const BookSalesDashboard = () => {
     const bookSalesPath = `/${tenantId}/books`;
     const [period, setPeriod] = useState('This Year');
     const [data, setData] = useState({
-        kpis: { vendors: 0, active_vendors: 0, total_stock: 0, total_titles: 0, total_sold: 0, total_revenue: 0, total_returns: 0 },
+        kpis: { vendors: 0, active_vendors: 0, total_stock: 0, total_titles: 0, total_sold: 0, total_revenue: 0, total_paid: 0, total_due: 0, total_returns: 0 },
         recent_sales: [],
         recent_vendors: [],
         low_stock: [],
@@ -72,7 +72,9 @@ const BookSalesDashboard = () => {
         { label: 'Total Book Stock', value: (kpis.total_stock || 0).toLocaleString(), icon: '📦', color: '#ff9f43', bg: '#fff5e6', sub: `${kpis.total_titles} Titles` },
         { label: 'Total Books Sold', value: (kpis.total_sold || 0).toLocaleString(), icon: '📚', color: '#28c76f', bg: '#e8faf1', sub: period },
         { label: 'Total Revenue', value: `₹${(kpis.total_revenue || 0).toLocaleString()}`, icon: '💰', color: '#7367f0', bg: '#efedfd', sub: period },
-        { label: 'Total Returns', value: kpis.total_returns, icon: '🔁', color: '#ea5455', bg: '#fce8e8', sub: period === 'Today' ? 'Today' : period === 'This Week' ? 'This Week' : 'Pending' },
+        { label: 'Total Paid', value: `₹${(kpis.total_paid || 0).toLocaleString()}`, icon: '✓', color: '#00cfe8', bg: '#e6fafe', sub: period },
+        { label: 'Total Due', value: `₹${(kpis.total_due || 0).toLocaleString()}`, icon: '₹', color: '#ff9f43', bg: '#fff5e6', sub: period },
+        { label: 'Total Returns', value: kpis.total_returns, icon: '🔁', color: '#ea5455', bg: '#fce8e8', sub: period },
     ];
 
     // Map payment methods for pie chart

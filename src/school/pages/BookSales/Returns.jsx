@@ -7,7 +7,8 @@ import './SalesEntry.css';
 
 const today = new Date().toISOString().split('T')[0];
 const reasons = ['Damaged pages', 'Wrong edition', 'Duplicate', 'Not needed', 'Wrong class', 'Defective binding', 'Other'];
-const emptyForm = { sale_id: null, book_id: null, student: '', book: '', qty: 1, reason: reasons[0], date: today, student_class: '', unit_price: 0 };
+const emptyForm = { student: '', reason: reasons[0], date: today, student_class: '', items: {} };
+const toNumber = (value) => Number(value || 0);
 
 const Returns = () => {
     const [returns, setReturns] = useState([]);
@@ -91,11 +92,65 @@ const Returns = () => {
         return Array.from(studentMap.entries()).slice(0, 50);
     }, [studentSales]);
 
+    const returnedQtyBySaleId = useMemo(() => {
+        return returns
+            .filter(r => r.status !== 'Rejected' && r.sale_id)
+            .reduce((acc, r) => {
+                acc[r.sale_id] = (acc[r.sale_id] || 0) + toNumber(r.qty);
+                return acc;
+            }, {});
+    }, [returns]);
+
     // Books for selected student
     const studentBooks = useMemo(() => {
         if (!form.student) return [];
-        return allSales.filter(s => s.student_name === form.student);
-    }, [allSales, form.student]);
+        return allSales
+            .filter(s => s.student_name === form.student)
+            .map(s => ({
+                ...s,
+                returned_qty: returnedQtyBySaleId[s.id] || 0,
+                returnable_qty: Math.max(toNumber(s.qty) - toNumber(returnedQtyBySaleId[s.id]), 0)
+            }))
+            .filter(s => s.returnable_qty > 0);
+    }, [allSales, form.student, returnedQtyBySaleId]);
+
+    const selectedReturnItems = useMemo(() => {
+        return studentBooks
+            .filter(s => form.items[s.id])
+            .map(s => ({
+                sale: s,
+                qty: Math.min(toNumber(form.items[s.id]?.qty) || 1, s.returnable_qty)
+            }));
+    }, [studentBooks, form.items]);
+
+    const selectedReturnQty = selectedReturnItems.reduce((sum, item) => sum + item.qty, 0);
+    const selectedReturnAmount = selectedReturnItems.reduce(
+        (sum, item) => sum + (toNumber(item.sale.unit_price) * item.qty),
+        0
+    );
+
+    const toggleReturnBook = (sale) => {
+        setForm(prev => {
+            const items = { ...prev.items };
+            if (items[sale.id]) {
+                delete items[sale.id];
+            } else {
+                items[sale.id] = { qty: 1 };
+            }
+            return { ...prev, items };
+        });
+    };
+
+    const updateReturnQty = (sale, value) => {
+        const qty = Math.min(Math.max(toNumber(value) || 1, 1), sale.returnable_qty);
+        setForm(prev => ({
+            ...prev,
+            items: {
+                ...prev.items,
+                [sale.id]: { qty }
+            }
+        }));
+    };
 
     const filteredReturns = returns.filter(r =>
         (filterStatus === 'All' || r.status === filterStatus) &&
@@ -104,22 +159,27 @@ const Returns = () => {
     );
 
     const handleSubmit = async () => {
-        if (!form.student || !form.book || loading) return;
+        if (!form.student || selectedReturnItems.length === 0 || loading) return;
+        const invalidItem = selectedReturnItems.find(item => item.qty > item.sale.returnable_qty);
+        if (invalidItem) {
+            alert(`Only ${invalidItem.sale.returnable_qty} unit(s) are available to return for ${invalidItem.sale.book_name}.`);
+            return;
+        }
         setLoading(true);
         try {
-            const payload = {
-                sale_id: form.sale_id,
-                book_id: form.book_id,
+            const payloads = selectedReturnItems.map(item => ({
+                sale_id: item.sale.id,
+                book_id: item.sale.book_id,
                 student_name: form.student,
                 student_class: form.student_class,
-                book_name: form.book,
-                qty: Number(form.qty),
-                unit_price: Number(form.unit_price) || 0,
-                total_amount: (Number(form.unit_price) || 0) * (Number(form.qty) || 0),
+                book_name: item.sale.book_name,
+                qty: item.qty,
+                unit_price: toNumber(item.sale.unit_price),
+                total_amount: toNumber(item.sale.unit_price) * item.qty,
                 reason: form.reason,
                 status: 'Pending'
-            };
-            await returnsService.create(payload);
+            }));
+            await Promise.all(payloads.map(payload => returnsService.create(payload)));
             await fetchReturns();
             setForm(emptyForm);
             setStudentSearch('');
@@ -143,7 +203,10 @@ const Returns = () => {
 
     const totalReturns = returns.length;
     const pendingReturns = returns.filter(r => r.status === 'Pending').length;
-    const approvedReturns = returns.filter(r => r.status === 'Approved').length;
+    const approvedReturnRows = returns.filter(r => r.status === 'Approved');
+    const approvedReturns = approvedReturnRows.length;
+    const approvedReturnQty = approvedReturnRows.reduce((sum, r) => sum + Number(r.qty || 0), 0);
+    const approvedReturnAmount = approvedReturnRows.reduce((sum, r) => sum + Number(r.total_amount || 0), 0);
 
     return (
         <div className="bs-page">
@@ -161,11 +224,13 @@ const Returns = () => {
                 </button>
             </div>
 
-            <div className="bs-row" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            <div className="bs-row" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
                 {[
                     { label: 'Total Returns', value: totalReturns, icon: '🔁', color: '#3d5ee1', bg: '#eef1fd' },
                     { label: 'Pending Approval', value: pendingReturns, icon: '⏳', color: '#ff9f43', bg: '#fff5e6' },
                     { label: 'Approved Returns', value: approvedReturns, icon: '✅', color: '#28c76f', bg: '#e8faf1' },
+                    { label: 'Approved Qty', value: approvedReturnQty, icon: '📚', color: '#7367f0', bg: '#efedfd' },
+                    { label: 'Return Amount', value: `₹${approvedReturnAmount.toLocaleString()}`, icon: '₹', color: '#ea5455', bg: '#fce8e8' },
                 ].map((card, i) => (
                     <div key={i} className="bs-kpi-card">
                         <div className="bs-kpi-icon" style={{ background: card.bg, color: card.color }}><span>{card.icon}</span></div>
@@ -271,7 +336,7 @@ const Returns = () => {
                                         value={selectedClass} 
                                         onChange={e => {
                                             setSelectedClass(e.target.value);
-                                            if (form.student) setForm({ ...form, student: '', book: '' });
+                                            if (form.student) setForm({ ...form, student: '', items: {} });
                                             setStudentSearch('');
                                         }}
                                     >
@@ -289,7 +354,7 @@ const Returns = () => {
                                         disabled={!selectedClass && !form.student}
                                         onChange={e => {
                                             setStudentSearch(e.target.value);
-                                            if (form.student) setForm({ ...form, student: '', book: '' });
+                                            if (form.student) setForm({ ...form, student: '', items: {} });
                                         }} 
                                     />
                                     {!form.student && (selectedClass || studentSearch.length >= 2) && uniqueStudents.length > 0 && (
@@ -299,7 +364,7 @@ const Returns = () => {
                                                     key={name} 
                                                     className="bs-suggestion-item"
                                                     onClick={() => {
-                                                        setForm({ ...form, student: name, student_class: sClass });
+                                                        setForm({ ...form, student: name, student_class: sClass, items: {} });
                                                         setStudentSearch(name);
                                                     }}
                                                 >
@@ -313,39 +378,72 @@ const Returns = () => {
                                 {form.student && (
                                     <>
                                         <div className="bs-form-group full-width">
-                                            <label className="bs-form-label">Select Purchased Book *</label>
-                                            <div className="se-book-list" style={{ maxHeight: 180 }}>
+                                            <label className="bs-form-label">Select Purchased Books *</label>
+                                            <div className="se-book-list" style={{ maxHeight: 240 }}>
                                                 {studentBooks.length === 0 ? (
                                                     <p style={{ fontSize: 12, color: 'var(--bs-muted)' }}>No purchase history found.</p>
                                                 ) : studentBooks.map((s, idx) => {
                                                     const sDate = s.date ? new Date(s.date).toLocaleDateString() : 'N/A';
+                                                    const selected = Boolean(form.items[s.id]);
+                                                    const selectedQty = form.items[s.id]?.qty || 1;
                                                     return (
                                                         <div 
                                                             key={idx} 
-                                                            className={`se-book-item ${form.book === s.book_name ? 'se-book-item-active' : ''}`}
-                                                            onClick={() => setForm({ ...form, sale_id: s.id, book: s.book_name, book_id: s.book_id, unit_price: s.unit_price })}
+                                                            className={`se-book-item ${selected ? 'se-book-item-active' : ''}`}
+                                                            onClick={() => toggleReturnBook(s)}
                                                         >
                                                             <div className="se-book-info">
                                                                 <div className="se-book-name">{s.book_name}</div>
                                                                 <div className="se-book-meta">
-                                                                    <span className="se-book-price">Bought: {s.qty} units @ ₹{s.unit_price}</span>
+                                                                    <span className="se-book-price">Returnable: {s.returnable_qty} of {s.qty} units @ ₹{s.unit_price}</span>
                                                                     <span style={{ fontSize: 11, color: 'var(--bs-muted)' }}>Date: {sDate}</span>
                                                                 </div>
+                                                                {selected && (
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }} onClick={e => e.stopPropagation()}>
+                                                                        <span style={{ fontSize: 12, color: 'var(--bs-muted)', fontWeight: 600 }}>Qty</span>
+                                                                        <input
+                                                                            className="bs-form-input"
+                                                                            type="number"
+                                                                            min="1"
+                                                                            max={s.returnable_qty}
+                                                                            value={selectedQty}
+                                                                            onChange={e => updateReturnQty(s, e.target.value)}
+                                                                            style={{ width: 88, height: 34 }}
+                                                                        />
+                                                                        <span style={{ fontSize: 12, color: 'var(--bs-muted)' }}>
+                                                                            Amount ₹{(toNumber(s.unit_price) * toNumber(selectedQty)).toLocaleString()}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            <div className={`se-checkbox ${form.book === s.book_name ? 'se-checkbox-checked' : ''}`}>
-                                                                {form.book === s.book_name && <span className="se-check-icon">✓</span>}
+                                                            <div className={`se-checkbox ${selected ? 'se-checkbox-checked' : ''}`}>
+                                                                {selected && <span className="se-check-icon">✓</span>}
                                                             </div>
                                                         </div>
                                                     );
                                                 })}
                                             </div>
                                         </div>
-
-                                        <div className="bs-form-group">
-                                            <label className="bs-form-label">Qty to Return</label>
-                                            <input className="bs-form-input" type="number" min="1" max={studentBooks.find(b => b.book_name === form.book)?.qty || 1}
-                                                value={form.qty} onChange={e => setForm({ ...form, qty: e.target.value })} />
-                                        </div>
+                                        {selectedReturnItems.length > 0 && (
+                                            <div className="bs-form-group full-width">
+                                                <div className="bs-summary-bar" style={{ margin: 0 }}>
+                                                    <div className="bs-summary-item">
+                                                        <span className="bs-summary-label">Selected Products</span>
+                                                        <span className="bs-summary-value">{selectedReturnItems.length}</span>
+                                                    </div>
+                                                    <div className="bs-summary-divider" />
+                                                    <div className="bs-summary-item">
+                                                        <span className="bs-summary-label">Return Qty</span>
+                                                        <span className="bs-summary-value">{selectedReturnQty}</span>
+                                                    </div>
+                                                    <div className="bs-summary-divider" />
+                                                    <div className="bs-summary-item">
+                                                        <span className="bs-summary-label">Return Amount</span>
+                                                        <span className="bs-summary-value" style={{ color: '#ea5455' }}>₹{selectedReturnAmount.toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="bs-form-group">
                                             <label className="bs-form-label">Return Date</label>
                                             <input className="bs-form-input" type="date" value={form.date}
@@ -366,10 +464,10 @@ const Returns = () => {
                             <button 
                                 className="bs-btn bs-btn-warning bs-btn-animated" 
                                 onClick={handleSubmit}
-                                disabled={!form.student || !form.book || loading}
-                                style={{ opacity: (!form.student || !form.book || loading) ? 0.6 : 1 }}
+                                disabled={!form.student || selectedReturnItems.length === 0 || loading}
+                                style={{ opacity: (!form.student || selectedReturnItems.length === 0 || loading) ? 0.6 : 1 }}
                             >
-                                {loading ? 'Saving...' : '✔ Submit Return'}
+                                {loading ? 'Saving...' : `✔ Submit ${selectedReturnItems.length || ''} Return${selectedReturnItems.length > 1 ? 's' : ''}`}
                             </button>
                         </div>
                     </div>

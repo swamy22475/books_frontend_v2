@@ -905,6 +905,38 @@
     font-weight: 700;
 }
 
+/* ── Search Input Styling ────────────────────────────────────── */
+.rpt-search-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color, #e5e9f0) !important;
+    border-radius: 10px !important;
+    font-size: 13.5px !important;
+    color: var(--text-color, #333448) !important;
+    background: var(--bg-card, #fff) !important;
+    transition: var(--rpt-transition);
+    box-sizing: border-box;
+}
+
+.rpt-search-input::placeholder {
+    color: #b9becd;
+}
+
+.rpt-search-input:focus {
+    outline: none !important;
+    border-color: var(--rpt-primary) !important;
+    box-shadow: 0 0 0 4px rgba(61, 94, 225, 0.1);
+}
+
+/* ── Card Header Enhancements ────────────────────────────────– */
+.rpt-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
 /* ── Print styles: hide UI chrome, show only table ───────────── */
 @media print {
 

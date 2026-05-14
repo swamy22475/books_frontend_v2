@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { inventoryService } from '../../../api/inventory';
 import { vendorService } from '../../../api/vendors';
 import { stockService } from '../../../api/stock';
+import { salesService } from '../../../api/sales';
+import { returnsService } from '../../../api/returns';
+import { allocateReturnAdjustments, getNetSaleQty } from './salesMetrics';
 import './BookSales.css';
 import './StockIn.css';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-const calcSold = (item) => Math.max(0, Number(item.qty) - Number(item.stock));
 const calcPct = (item) => (Number(item.qty) === 0 ? 0 : (Number(item.stock) / Number(item.qty)) * 100);
 
 const getStatus = (pct) => {
@@ -31,6 +33,8 @@ const displayValue = (value, fallback = '—') => (
 // ─── Component ────────────────────────────────────────────────────────────────
 const StockIn = () => {
     const [inventory, setInventory] = useState([]);
+    const [sales, setSales] = useState([]);
+    const [returns, setReturns] = useState([]);
     const [vendorList, setVendorList] = useState([]);
     const [log, setLog] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -46,10 +50,12 @@ const StockIn = () => {
     const load = async () => {
         try {
             setLoading(true);
-            const [books, vendors, stockLog] = await Promise.all([
+            const [books, vendors, stockLog, salesRows, returnRows] = await Promise.all([
                 inventoryService.getAll(),
                 vendorService.getAll(),
                 stockService.getAll(),
+                salesService.getAll(0, 10000),
+                returnsService.getAll(0, 10000),
             ]);
             // Map backend fields to what the component uses
             const mapped = books.map(b => ({
@@ -59,9 +65,12 @@ const StockIn = () => {
                 type: b.book_type,
                 qty: b.total_qty,
                 stock: b.stock_available,
+                backendStock: b.stock_available,
                 vendor: b.vendor_name || '',
             }));
             setInventory(mapped);
+            setSales(Array.isArray(salesRows) ? salesRows : []);
+            setReturns(Array.isArray(returnRows) ? returnRows : []);
             setVendorList(vendors);
             setLog(stockLog
                 .filter(s => (s.movement_type || (Number(s.quantity) >= 0 ? 'stock_in' : 'sale')) === 'stock_in')
@@ -95,10 +104,18 @@ const StockIn = () => {
     }, []);
 
     // ── derived stock overview ──
+    const returnAdjustments = useMemo(() => allocateReturnAdjustments(sales, returns), [sales, returns]);
+    const soldByBook = useMemo(() => sales.reduce((acc, sale) => {
+        const key = sale.book_id ? `id:${sale.book_id}` : `name:${String(sale.book_name || '').trim().toLowerCase()}`;
+        acc[key] = (acc[key] || 0) + getNetSaleQty(sale, returnAdjustments);
+        return acc;
+    }, {}), [sales, returnAdjustments]);
+
     const overview = inventory.map(item => {
-        const sold = calcSold(item);
-        const pct = calcPct(item);
-        return { ...item, sold, pct: Math.round(pct) };
+        const sold = soldByBook[`id:${item.id}`] ?? soldByBook[`name:${String(item.name || '').trim().toLowerCase()}`] ?? 0;
+        const stock = Math.max(Number(item.qty || 0) - Number(sold || 0), 0);
+        const pct = calcPct({ ...item, stock });
+        return { ...item, backendStock: item.backendStock ?? item.stock, stock, sold, pct: Math.round(pct) };
     });
 
     const filtered = overview.filter(item => {
@@ -495,9 +512,9 @@ const StockIn = () => {
 
                             {/* Mini preview of current stock for selected book */}
                             {(() => {
-                                const sel = inventory.find(b => b.name === form.book);
+                                const sel = overview.find(b => b.name === form.book);
                                 if (!sel) return null;
-                                const sp = getStatus(calcPct(sel));
+                                const sp = getStatus(sel.pct);
                                 return (
                                     <div className="si-preview-box">
                                         <p className="si-preview-title">📊 Current stock for <strong>{sel.name}</strong></p>
@@ -508,7 +525,7 @@ const StockIn = () => {
                                             </div>
                                             <div className="si-preview-item">
                                                 <span>Sold</span>
-                                                <strong style={{ color: '#28c76f' }}>{calcSold(sel)}</strong>
+                                                <strong style={{ color: '#28c76f' }}>{sel.sold}</strong>
                                             </div>
                                             <div className="si-preview-item">
                                                 <span>Remaining</span>

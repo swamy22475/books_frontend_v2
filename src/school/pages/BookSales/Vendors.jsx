@@ -6,6 +6,7 @@ import './BookSales.css';
 const emptyVendor = { name: '', type: 'Wholesaler', phone: '', address: '', payment: 'Cash', booksSupplied: 0, amount: 0, paidAmount: 0, remainingAmount: 0, billNo: '', status: 'Active' };
 const vendorTypes = ['Wholesaler', 'Publisher', 'Distributor', 'Retailer'];
 const paymentMethods = ['Cash', 'UPI', 'Cheque', 'Bank Transfer', 'Card'];
+const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString()}`;
 
 // Helper to map backend vendor to frontend format
 const mapToFrontend = (v) => ({
@@ -48,6 +49,10 @@ const Vendors = () => {
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState(emptyVendor);
     const [viewVendor, setViewVendor] = useState(null);
+    const [payVendor, setPayVendor] = useState(null);
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('Cash');
+    const [paymentSaving, setPaymentSaving] = useState(false);
     const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'success'
 
     // Fetch vendors from DB
@@ -75,6 +80,16 @@ const Vendors = () => {
 
     const openAdd = () => { setForm(emptyVendor); setEditId(null); setShowModal(true); };
     const openEdit = (v) => { setForm({ ...v }); setEditId(v.id); setShowModal(true); };
+    const openPayment = (vendor) => {
+        const remaining = Number(vendor.remainingAmount || 0);
+        if (remaining <= 0) {
+            alert('No outstanding balance for this vendor.');
+            return;
+        }
+        setPayVendor(vendor);
+        setPaymentAmount('');
+        setPaymentMethod(vendor.payment || 'Cash');
+    };
 
     const handleSubmit = async () => {
         if (!form.name || !form.phone) return;
@@ -136,6 +151,50 @@ const Vendors = () => {
                 console.error('Error processing payment:', error.message);
                 alert('Failed to process payment.');
             }
+        }
+    };
+
+    const processVendorPayment = async () => {
+        if (!payVendor || paymentSaving) return;
+
+        const remaining = Number(payVendor.remainingAmount || 0);
+        const amount = Number(paymentAmount || 0);
+        if (remaining <= 0) {
+            alert('No outstanding balance for this vendor.');
+            return;
+        }
+
+        if (!amount || amount <= 0) {
+            alert('Please enter a valid payment amount.');
+            return;
+        }
+
+        if (amount > remaining) {
+            alert(`Payment cannot be more than remaining amount ${formatCurrency(remaining)}.`);
+            return;
+        }
+
+        try {
+            setPaymentSaving(true);
+            const newPaidAmount = Number(payVendor.paidAmount || 0) + amount;
+            const newRemaining = Math.max(Number(payVendor.amount || 0) - newPaidAmount, 0);
+
+            await vendorService.update(payVendor.id, {
+                ...mapToBackend({ ...payVendor, payment: paymentMethod }),
+                payment_method: paymentMethod,
+                paid_amount: newPaidAmount,
+                remaining_amount: newRemaining
+            });
+
+            await fetchVendors();
+            setPayVendor(null);
+            setPaymentAmount('');
+            alert('Payment updated successfully!');
+        } catch (error) {
+            console.error('Error processing payment:', error.message);
+            alert('Failed to process payment.');
+        } finally {
+            setPaymentSaving(false);
         }
     };
 
@@ -385,13 +444,7 @@ const Vendors = () => {
                                             <button className="bs-btn-icon bs-btn-icon-edit" title="Edit" onClick={() => openEdit(v)}>✏️</button>
                                             <button className="bs-btn-icon bs-btn-icon-delete" title="Delete" onClick={() => handleDelete(v.id)}>🗑</button>
                                             
-                                            <div className="bs-dropdown">
-                                                <button className="bs-btn-pay">💸 Pay Bill ▾</button>
-                                                <div className="bs-dropdown-content">
-                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'full')}>✅ Full Payment</div>
-                                                    <div className="bs-dropdown-item" onClick={() => handlePayment(v, 'half')}>🌓 Half Payment</div>
-                                                </div>
-                                            </div>
+                                            <button className="bs-btn-pay" onClick={() => openPayment(v)}>Pay Bill</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -477,6 +530,87 @@ const Vendors = () => {
                             <button className="bs-btn bs-btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
                             <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={handleSubmit}>
                                 {editId ? '✔ Update Vendor' : '✔ Add Vendor'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {payVendor && (
+                <div className="bs-modal-overlay" onClick={() => setPayVendor(null)}>
+                    <div className="bs-modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
+                        <div className="bs-modal-header">
+                            <h5 className="bs-modal-title">Pay Vendor Bill</h5>
+                            <button className="bs-modal-close" onClick={() => setPayVendor(null)}>×</button>
+                        </div>
+                        <div className="bs-modal-body">
+                            <div style={{ border: '1px solid var(--bs-border)', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                                <div style={{ padding: '18px 20px', background: '#f8f9fb', borderBottom: '1px solid var(--bs-border)' }}>
+                                    <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--bs-text)', marginBottom: 4 }}>
+                                        {payVendor.name}
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 12, color: 'var(--bs-muted)' }}>
+                                        <span>Bill No: <strong>{payVendor.billNo || '-'}</strong></span>
+                                        <span>Phone: <strong>{payVendor.phone || '-'}</strong></span>
+                                        <span>Type: <strong>{payVendor.type}</strong></span>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--bs-border)' }}>
+                                    {[
+                                        ['Total Bill', formatCurrency(payVendor.amount), '#7367f0'],
+                                        ['Paid', formatCurrency(payVendor.paidAmount), '#28c76f'],
+                                        ['Remaining', formatCurrency(payVendor.remainingAmount), '#ea5455'],
+                                    ].map(([label, value, color]) => (
+                                        <div key={label} style={{ background: '#fff', padding: 16 }}>
+                                            <div style={{ fontSize: 12, color: 'var(--bs-muted)', marginBottom: 6 }}>{label}</div>
+                                            <div style={{ fontSize: 18, fontWeight: 800, color }}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div style={{ padding: 20 }}>
+                                    <div className="bs-form-grid">
+                                        <div className="bs-form-group">
+                                            <label className="bs-form-label">Amount to Pay *</label>
+                                            <input
+                                                className="bs-form-input"
+                                                type="number"
+                                                min="1"
+                                                max={Number(payVendor.remainingAmount || 0)}
+                                                placeholder="Enter amount"
+                                                value={paymentAmount}
+                                                onChange={e => {
+                                                    const value = e.target.value;
+                                                    const max = Number(payVendor.remainingAmount || 0);
+                                                    if (value === '' || Number(value) <= max) setPaymentAmount(value);
+                                                }}
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="bs-form-group">
+                                            <label className="bs-form-label">Payment Method</label>
+                                            <select className="bs-form-select" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+                                                {paymentMethods.map(m => <option key={m}>{m}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {paymentAmount && (
+                                        <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: '#f8f9fb', color: 'var(--bs-text)', fontSize: 13 }}>
+                                            After this payment, remaining amount will be{' '}
+                                            <strong style={{ color: '#ea5455' }}>
+                                                {formatCurrency(Number(payVendor.remainingAmount || 0) - Number(paymentAmount || 0))}
+                                            </strong>.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bs-modal-footer">
+                            <button className="bs-btn bs-btn-outline" onClick={() => setPayVendor(null)} disabled={paymentSaving}>Cancel</button>
+                            <button className="bs-btn bs-btn-primary bs-btn-animated" onClick={processVendorPayment} disabled={paymentSaving}>
+                                {paymentSaving ? 'Updating...' : 'Update Payment'}
                             </button>
                         </div>
                     </div>

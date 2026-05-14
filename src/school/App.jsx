@@ -61,6 +61,7 @@ import { AcademicsProvider } from './context/AcademicsContext';
 
 import ReportsDashboard from './pages/Reports/ReportsDashboard';
 import StudentReport from './pages/Reports/StudentReport';
+import ClassWiseAnalytics from './pages/Reports/ClassWiseAnalytics';
 import ProgressReport from './pages/Reports/ProgressReport';
 import FeesReport from './pages/Reports/FeesReport';
 import AttendanceReport from './pages/Reports/AttendanceReport';
@@ -190,6 +191,7 @@ function App() {
                 {/* Reports & Analytics Routes */}
                 <Route path="school/reports" element={<ReportsDashboard />} />
                 <Route path="school/reports/student" element={<StudentReport />} />
+                <Route path="school/reports/class-wise" element={<ClassWiseAnalytics />} />
                 <Route path="school/reports/progress-report" element={<ProgressReport />} />
                 <Route path="school/reports/fees" element={<FeesReport />} />
                 <Route path="school/reports/attendance" element={<AttendanceReport />} />

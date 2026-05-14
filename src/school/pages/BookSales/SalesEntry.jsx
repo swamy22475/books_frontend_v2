@@ -1,11 +1,13 @@
-import React, { useContext, useState, useMemo, useEffect, useRef } from 'react';
+import React, { useContext, useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { IconCash, IconEye, IconTrash, IconX, IconPrinter } from '@tabler/icons-react';
 import { salesService } from '../../../api/sales';
 import { inventoryService } from '../../../api/inventory';
+import { returnsService } from '../../../api/returns';
 import { AcademicsContext } from '../../../context/AcademicsContext';
 import SaveFeedbackOverlay from './SaveFeedbackOverlay';
 import BillPrint from './BillPrint';
+import { allocateReturnAdjustments, getNetSaleAmount, getNetSaleQty, toNumber } from './salesMetrics';
 import './BookSales.css';
 import './SalesEntry.css';
 
@@ -35,6 +37,7 @@ const SalesEntry = () => {
     );
     const classNames = useMemo(() => classOptions.map(c => c.name), [classOptions]);
     const [sales, setSales] = useState([]);
+    const [returns, setReturns] = useState([]);
     const [inventory, setInventory] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -100,9 +103,37 @@ const SalesEntry = () => {
         }).catch(err => console.error('Error fetching sales:', err));
     };
 
+    const fetchReturns = () => {
+        return returnsService.getAll().then(data => {
+            const mapped = (Array.isArray(data) ? data : []).map(r => ({
+                id: r.id,
+                sale_id: r.sale_id,
+                student_name: r.student_name || '',
+                student_class: r.student_class || '',
+                book_name: r.book_name || '',
+                qty: toNumber(r.qty),
+                unit_price: toNumber(r.unit_price),
+                total_amount: toNumber(r.total_amount || ((r.unit_price || 0) * (r.qty || 0))),
+                status: r.status,
+                date: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : today,
+            }));
+            setReturns(mapped);
+        }).catch(err => console.error('Error fetching returns:', err));
+    };
+
     useEffect(() => {
         fetchInventory();
         fetchSales();
+        fetchReturns();
+    }, []);
+
+    useEffect(() => {
+        const refreshSalesData = () => {
+            fetchSales();
+            fetchReturns();
+        };
+        window.addEventListener('focus', refreshSalesData);
+        return () => window.removeEventListener('focus', refreshSalesData);
     }, []);
 
     useEffect(() => {
@@ -326,43 +357,93 @@ const SalesEntry = () => {
         }, 100);
     };
 
-    const filtered = sales.filter(s =>
+    const approvedReturns = useMemo(
+        () => returns.filter(r => r.status === 'Approved'),
+        [returns]
+    );
+
+    const returnAdjustments = useMemo(
+        () => allocateReturnAdjustments(sales, approvedReturns),
+        [sales, approvedReturns]
+    );
+
+    const netSales = useMemo(() => sales.map(s => ({
+        ...s,
+        netQty: getNetSaleQty(s, returnAdjustments),
+        netAmount: getNetSaleAmount(s, returnAdjustments),
+        returnedQty: toNumber(returnAdjustments[s.id]?.qty),
+        returnedAmount: toNumber(returnAdjustments[s.id]?.amount)
+    })), [sales, returnAdjustments]);
+
+    const filtered = netSales.filter(s =>
         (filterClass === 'All' || s.class === filterClass) &&
         (s.student.toLowerCase().includes(search.toLowerCase()) ||
             (s.phone || '').includes(search) ||
             s.book.toLowerCase().includes(search.toLowerCase()))
     );
 
-    const groupedSales = useMemo(() => {
+    const buildBillGroups = useCallback((rows) => {
         const groups = {};
-        filtered.forEach(s => {
+        rows.forEach(s => {
             const key = `${s.student}-${s.phone}-${s.class}-${s.section || ''}-${s.date}-${s.payment}`;
+            const item = {
+                name: s.book,
+                qty: s.netQty,
+                originalQty: s.qty,
+                returnedQty: s.returnedQty,
+                price: s.price,
+                total: s.netAmount,
+                originalTotal: Number(s.price) * Number(s.qty)
+            };
             if (!groups[key]) {
                 groups[key] = {
                     ...s,
-                    books: [s.book],
-                    items: [{ name: s.book, qty: s.qty, price: s.price, total: Number(s.price) * Number(s.qty) }],
+                    books: [s.netQty > 0 ? `${s.book}${s.returnedQty ? ` (${s.netQty}/${s.qty})` : ''}` : `${s.book} (returned)`],
+                    items: [item],
                     records: [s],
-                    totalQty: s.qty,
-                    totalAmount: Number(s.price) * Number(s.qty),
+                    totalQty: s.netQty,
+                    totalAmount: s.netAmount,
+                    returnAmount: s.returnedAmount,
                     paid: s.paid,
                     concession: s.concession,
-                    balance: s.balance,
+                    balance: 0,
+                    refundDue: 0,
                     types: new Set([s.type])
                 };
             } else {
-                groups[key].books.push(s.book);
-                groups[key].items.push({ name: s.book, qty: s.qty, price: s.price, total: Number(s.price) * Number(s.qty) });
+                groups[key].books.push(s.netQty > 0 ? `${s.book}${s.returnedQty ? ` (${s.netQty}/${s.qty})` : ''}` : `${s.book} (returned)`);
+                groups[key].items.push(item);
                 groups[key].records.push(s);
-                groups[key].totalQty += s.qty;
-                groups[key].totalAmount += Number(s.price) * Number(s.qty);
+                groups[key].totalQty += s.netQty;
+                groups[key].totalAmount += s.netAmount;
+                groups[key].returnAmount += s.returnedAmount;
                 groups[key].types.add(s.type);
             }
         });
-        return Object.values(groups);
-    }, [filtered]);
+        return Object.values(groups).map(group => {
+            const netTotal = Math.max(Number(group.totalAmount || 0) - Number(group.concession || 0), 0);
+            const paid = Number(group.paid || 0);
+            return {
+                ...group,
+                subtotalAmount: Number(group.totalAmount || 0),
+                totalAmount: netTotal,
+                paid: Math.min(paid, netTotal),
+                balance: Math.max(netTotal - paid, 0),
+                refundDue: Math.max(paid - netTotal, 0)
+            };
+        });
+    }, []);
 
-    const totalRevenue = sales.reduce((a, s) => a + Number(s.price) * Number(s.qty), 0);
+    const groupedSales = useMemo(() => buildBillGroups(filtered), [filtered, buildBillGroups]);
+    const allBillGroups = useMemo(() => buildBillGroups(netSales), [netSales, buildBillGroups]);
+    const todayBillGroups = useMemo(() => buildBillGroups(netSales.filter(s => s.date === today)), [netSales, buildBillGroups]);
+
+    const totalRevenue = allBillGroups.reduce((a, s) => a + Number(s.totalAmount || 0), 0);
+    const totalPaid = allBillGroups.reduce((a, s) => a + Number(s.paid || 0), 0);
+    const totalDue = allBillGroups.reduce((a, s) => a + Number(s.balance || 0), 0);
+    const totalBooksSold = netSales.reduce((a, s) => a + Number(s.netQty || 0), 0);
+    const todayRevenue = todayBillGroups.reduce((a, s) => a + Number(s.totalAmount || 0), 0);
+    const todayBooksSold = netSales.filter(s => s.date === today).reduce((a, s) => a + Number(s.netQty || 0), 0);
 
     return (
         <div className="bs-page">
@@ -390,10 +471,12 @@ const SalesEntry = () => {
 
             <div className="bs-summary-bar">
                 {[
-                    { label: 'Total Sales', value: sales.length, color: null },
+                    { label: 'Total Books Sold', value: totalBooksSold, color: null },
                     { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, color: '#28c76f' },
-                    { label: "Today's Sales", value: sales.filter(s => s.date === today).length, color: null },
-                    { label: "Books Sold Today", value: sales.filter(s => s.date === today).reduce((a, s) => a + Number(s.qty), 0), color: '#3d5ee1' },
+                    { label: 'Total Paid', value: `₹${totalPaid.toLocaleString()}`, color: '#3d5ee1' },
+                    { label: 'Total Due', value: `₹${totalDue.toLocaleString()}`, color: '#ea5455' },
+                    { label: "Today's Revenue", value: `₹${todayRevenue.toLocaleString()}`, color: '#28c76f' },
+                    { label: "Books Sold Today", value: todayBooksSold, color: '#3d5ee1' },
                 ].map((item, i, arr) => (
                     <React.Fragment key={i}>
                         <div className="bs-summary-item">

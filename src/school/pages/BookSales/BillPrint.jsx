@@ -1,146 +1,173 @@
 import React from 'react';
 import './BillPrint.css';
 
+const formatMoney = (value) => Number(value || 0).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+});
+
+const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+const twoDigitsToWords = (num) => {
+    if (num < 20) return ones[num];
+    return `${tens[Math.floor(num / 10)]}${num % 10 ? ` ${ones[num % 10]}` : ''}`;
+};
+
+const numberToWords = (value) => {
+    const num = Math.floor(Number(value || 0));
+    if (num === 0) return 'Zero Rupees Only';
+
+    const parts = [];
+    const crore = Math.floor(num / 10000000);
+    const lakh = Math.floor((num % 10000000) / 100000);
+    const thousand = Math.floor((num % 100000) / 1000);
+    const hundred = Math.floor((num % 1000) / 100);
+    const rest = num % 100;
+
+    if (crore) parts.push(`${twoDigitsToWords(crore)} Crore`);
+    if (lakh) parts.push(`${twoDigitsToWords(lakh)} Lakh`);
+    if (thousand) parts.push(`${twoDigitsToWords(thousand)} Thousand`);
+    if (hundred) parts.push(`${ones[hundred]} Hundred`);
+    if (rest) parts.push(twoDigitsToWords(rest));
+
+    return `${parts.join(' ')} Rupees Only`;
+};
+
+const getPaymentStatus = (paid, netTotal) => {
+    if (paid <= 0) return 'Unpaid';
+    if (paid >= netTotal) return 'Paid';
+    return 'Partially Paid';
+};
+
+const titleCaseTenant = (tenantId) => {
+    if (!tenantId || tenantId === 'default') return 'School';
+    return tenantId
+        .replace(/[-_]+/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+};
+
+const getSchoolProfile = () => {
+    try {
+        const savedUser = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
+        const user = savedUser ? JSON.parse(savedUser) : {};
+        const tenantId = sessionStorage.getItem('tenant_id') || localStorage.getItem('tenant_id') || user.tenant_id;
+
+        return {
+            name: user.school_name || user.schoolName || user.tenant_name || user.tenantName || user.institution_name || user.organization_name || user.name || titleCaseTenant(tenantId),
+            address: user.school_address || user.address || user.full_address || '',
+            phone: user.school_phone || user.phone || user.contact || user.mobile || '',
+            email: user.school_email || user.email || '',
+            website: user.website || user.school_website || user.url || ''
+        };
+    } catch {
+        return { name: 'School', address: '', phone: '', email: '', website: '' };
+    }
+};
+
 const BillPrint = React.forwardRef(({ sale }, ref) => {
+    if (!sale) return null;
+
+    const school = getSchoolProfile();
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
     });
-    const formattedTime = currentDate.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-    });
-
-    if (!sale) return null;
+    const invoiceNo = sale.id || sale.records?.[0]?.id || Math.floor(1000 + Math.random() * 9000);
+    const items = sale.items || [];
+    const totalAmount = Number(sale.subtotalAmount ?? sale.totalAmount ?? 0);
+    const concession = Number(sale.concession || 0);
+    const paid = Number(sale.paid || 0);
+    const netTotal = Math.max(totalAmount - concession, 0);
+    const balance = Math.max(netTotal - paid, 0);
+    const status = getPaymentStatus(paid, netTotal);
 
     return (
         <div ref={ref} className="bill-print-container">
-            <div className="bill-print-header">
-                <div className="bill-header-brand">
-                    <h1 className="bill-school-name">📚 SCHOOL BOOKS STORE</h1>
-                    <p className="bill-tagline">Complete Educational Resources</p>
-                </div>
-                <div className="bill-header-info">
-                    <p><strong>Invoice #:</strong> INV-{Math.floor(Math.random() * 1000000)}</p>
-                    <p><strong>Date:</strong> {formattedDate}</p>
-                    <p><strong>Time:</strong> {formattedTime}</p>
-                </div>
+            <div className="bill-topline">
+                <div></div>
+                <h1>{school.name}</h1>
+                <div className="bill-created-date">Create Date : {formattedDate}</div>
             </div>
 
-            <div className="bill-divider"></div>
+            <div className="bill-party-grid">
+                <div className="bill-party-block">
+                    <div className="bill-party-title">From</div>
+                    <div className="bill-strong">{school.name}</div>
+                    {school.address && <div>{school.address}</div>}
+                    {school.phone && <div>Phone : {school.phone}</div>}
+                    {school.email && <div>Email : {school.email}</div>}
+                    {school.website && <div>{school.website}</div>}
+                </div>
 
-            <div className="bill-customer-info">
-                <div className="bill-section">
-                    <h3 className="bill-section-title">📋 Bill To</h3>
-                    <div className="bill-info-grid">
-                        <div className="bill-info-row">
-                            <span className="bill-label">Student Name:</span>
-                            <span className="bill-value">{sale.student}</span>
-                        </div>
-                        <div className="bill-info-row">
-                            <span className="bill-label">Phone Number:</span>
-                            <span className="bill-value">{sale.phone || 'N/A'}</span>
-                        </div>
-                        <div className="bill-info-row">
-                            <span className="bill-label">Class:</span>
-                            <span className="bill-value">{sale.class}</span>
-                        </div>
-                        <div className="bill-info-row">
-                            <span className="bill-label">Section:</span>
-                            <span className="bill-value">{sale.section || 'N/A'}</span>
-                        </div>
-                        <div className="bill-info-row">
-                            <span className="bill-label">Payment Method:</span>
-                            <span className="bill-value bill-payment-method">{sale.payment}</span>
-                        </div>
+                <div className="bill-party-block">
+                    <div className="bill-party-title">To</div>
+                    <div className="bill-strong">{sale.student || '-'}</div>
+                    <div>Class : {sale.class || '-'}</div>
+                    <div>Section : {sale.section || '-'}</div>
+                    <div>Phone : {sale.phone || '-'}</div>
+                    <div>Payment Method : {sale.payment || '-'}</div>
+                </div>
+
+                <div className="bill-invoice-block">
+                    <div className="bill-invoice-no">Invoice #{invoiceNo}</div>
+                    <div>
+                        Payment Status :{' '}
+                        <span className={`bill-status bill-status-${status.toLowerCase().replace(/\s+/g, '-')}`}>
+                            {status}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <div className="bill-divider"></div>
-
-            <div className="bill-items-section">
-                <table className="bill-items-table">
-                    <thead>
-                        <tr className="bill-table-header">
-                            <th className="bill-col-sn">SN</th>
-                            <th className="bill-col-item">Book Name</th>
-                            <th className="bill-col-type">Type</th>
-                            <th className="bill-col-qty">Qty</th>
-                            <th className="bill-col-price">Unit Price</th>
-                            <th className="bill-col-total">Total</th>
+            <table className="bill-items-table">
+                <thead>
+                    <tr>
+                        <th className="bill-col-index">#</th>
+                        <th>Book Type</th>
+                        <th>Qty</th>
+                        <th>Amount</th>
+                        <th>Discount</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {items.map((item, idx) => (
+                        <tr key={`${item.name}-${idx}`}>
+                            <td>{idx + 1}</td>
+                            <td className="bill-item-name">{item.name}</td>
+                            <td>{item.qty}</td>
+                            <td>{formatMoney(Number(item.total || 0))}</td>
+                            <td>{idx === 0 ? formatMoney(concession) : '0.00'}</td>
+                            <td>{formatMoney(Math.max(Number(item.total || 0) - (idx === 0 ? concession : 0), 0))}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {sale.items && sale.items.map((item, idx) => (
-                            <tr key={idx} className="bill-table-row">
-                                <td className="bill-col-sn">{idx + 1}</td>
-                                <td className="bill-col-item">{item.name}</td>
-                                <td className="bill-col-type">
-                                    <span className="bill-badge">{item.type || 'Set'}</span>
-                                </td>
-                                <td className="bill-col-qty">{item.qty}</td>
-                                <td className="bill-col-price">₹{Number(item.price).toFixed(2)}</td>
-                                <td className="bill-col-total">₹{Number(item.total).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                    ))}
 
-            <div className="bill-divider"></div>
+                    <tr className="bill-total-row">
+                        <td colSpan={5}>Total Amount</td>
+                        <td>{formatMoney(netTotal)}</td>
+                    </tr>
+                    <tr className="bill-total-row">
+                        <td colSpan={5}>Paid</td>
+                        <td>{formatMoney(paid)}</td>
+                    </tr>
+                    <tr className="bill-total-row">
+                        <td colSpan={5}>Balance</td>
+                        <td>{formatMoney(balance)}</td>
+                    </tr>
+                    <tr>
+                        <td colSpan={6} className="bill-amount-words">
+                            {numberToWords(netTotal)}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-            <div className="bill-summary-section">
-                <div className="bill-summary-row">
-                    <span className="bill-summary-label">Sub Total (Sum of all items)</span>
-                    <span className="bill-summary-value">₹{Number(sale.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-                {Number(sale.concession || 0) > 0 && (
-                    <div className="bill-summary-row">
-                        <span className="bill-summary-label">Concession/Discount</span>
-                        <span className="bill-summary-value">-₹{Number(sale.concession).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                )}
-                <div className="bill-summary-row bill-net-row">
-                    <span className="bill-summary-label">Net Total (After Discount)</span>
-                    <span className="bill-summary-value">₹{(Number(sale.totalAmount) - Number(sale.concession || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-                <div className="bill-summary-row">
-                    <span className="bill-summary-label">Amount Paid</span>
-                    <span className="bill-summary-value bill-paid">₹{Number(sale.paid).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-                <div className="bill-summary-row bill-balance-row">
-                    <span className="bill-summary-label">Balance Due</span>
-                    <span className={`bill-summary-value ${sale.balance > 0 ? 'bill-due' : 'bill-paid'}`}>
-                        ₹{Number(sale.balance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                </div>
-            </div>
-
-            <div className="bill-divider"></div>
-
-            <div className="bill-footer">
-                <div className="bill-footer-notes">
-                    <p className="bill-footer-title">📌 Notes:</p>
-                    <ul className="bill-footer-list">
-                        <li>Please keep this bill for your records</li>
-                        <li>Books are sold as per condition shown</li>
-                        <li>Returns accepted within 7 days with receipt</li>
-                        <li>For queries, contact the school office</li>
-                    </ul>
-                </div>
-                <div className="bill-footer-thanks">
-                    <p className="bill-thanks-text">Thank You! 🙏</p>
-                    <p className="bill-signature">School Books Store</p>
-                </div>
-            </div>
-
-            <div className="bill-print-footer">
-                <p>This is a computer-generated receipt. No signature required.</p>
+            <div className="bill-sign-row">
+                <div>Received By</div>
+                <div>Authorized Signature</div>
             </div>
         </div>
     );

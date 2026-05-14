@@ -4,6 +4,7 @@ import { salesService } from '../../../api/sales';
 import { inventoryService } from '../../../api/inventory';
 import { returnsService } from '../../../api/returns';
 import { vendorService } from '../../../api/vendors';
+import { allocateReturnAdjustments, getNetSaleAmount, getNetSaleQty, lineAmount, toNumber } from './salesMetrics';
 import {
     BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -12,6 +13,14 @@ import {
 import './BookSales.css';
 
 const today = new Date().toISOString().split('T')[0];
+const initialFilters = {
+    dateFrom: '2026-01-01',
+    dateTo: today,
+    vendor: 'All',
+    className: 'All',
+    section: 'All',
+    book: 'All',
+};
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -37,10 +46,8 @@ const BookSalesReports = () => {
     const [loading, setLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState('sales');
-    const [dateFrom, setDateFrom] = useState('2026-01-01');
-    const [dateTo, setDateTo] = useState(today);
-    const [filterVendor, setFilterVendor] = useState('All');
-    const [filterBook, setFilterBook] = useState('All');
+    const [filters, setFilters] = useState(initialFilters);
+    const [draftFilters, setDraftFilters] = useState(initialFilters);
 
     // ── Fetch All Data ──
     useEffect(() => {
@@ -66,33 +73,56 @@ const BookSalesReports = () => {
     }, []);
 
     // ── Metrics & Aggregations ──
+    const filteredSales = useMemo(() => sales.filter(s => {
+        const saleDate = s.date ? new Date(s.date).toISOString().split('T')[0] : '';
+        const saleClass = s.student_class || s.class || 'N/A';
+        const saleSection = s.student_section || 'N/A';
+        const book = inventory.find(b => b.id === s.book_id || b.name === s.book_name);
+        const saleVendor = book?.vendor_name || book?.vendor || '';
+        return (!filters.dateFrom || saleDate >= filters.dateFrom)
+            && (!filters.dateTo || saleDate <= filters.dateTo)
+            && (filters.book === 'All' || s.book_name === filters.book)
+            && (filters.className === 'All' || saleClass === filters.className)
+            && (filters.section === 'All' || saleSection === filters.section)
+            && (filters.vendor === 'All' || saleVendor === filters.vendor);
+    }), [sales, inventory, filters]);
+
+    const filteredReturns = useMemo(() => returns.filter(r => {
+        const returnDate = r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : '';
+        const returnClass = r.student_class || r.class || 'N/A';
+        const sale = sales.find(s => Number(s.id) === Number(r.sale_id));
+        const returnSection = sale?.student_section || r.student_section || 'N/A';
+        const book = inventory.find(b => b.id === r.book_id || b.name === r.book_name);
+        const returnVendor = book?.vendor_name || book?.vendor || '';
+        return (!filters.dateFrom || returnDate >= filters.dateFrom)
+            && (!filters.dateTo || returnDate <= filters.dateTo)
+            && (filters.book === 'All' || r.book_name === filters.book)
+            && (filters.className === 'All' || returnClass === filters.className)
+            && (filters.section === 'All' || returnSection === filters.section)
+            && (filters.vendor === 'All' || returnVendor === filters.vendor);
+    }), [returns, sales, inventory, filters]);
+
     const approvedReturns = useMemo(
-        () => returns.filter(r => r.status === 'Approved'),
-        [returns]
+        () => filteredReturns.filter(r => r.status === 'Approved'),
+        [filteredReturns]
     );
 
-    const returnedSaleIds = useMemo(
-        () => new Set(approvedReturns.map(r => r.sale_id).filter(Boolean)),
-        [approvedReturns]
+    const returnAdjustments = useMemo(
+        () => allocateReturnAdjustments(filteredSales, approvedReturns),
+        [filteredSales, approvedReturns]
     );
+    const netQtyForSale = (sale) => getNetSaleQty(sale, returnAdjustments);
+    const netAmountForSale = (sale) => getNetSaleAmount(sale, returnAdjustments);
 
     const activeSales = useMemo(
-        () => sales.filter(s => !returnedSaleIds.has(s.id)),
-        [sales, returnedSaleIds]
+        () => filteredSales.filter(s => netQtyForSale(s) > 0),
+        [filteredSales, returnAdjustments]
     );
-
-    const returnAmountBySaleId = useMemo(() => {
-        return approvedReturns.reduce((acc, r) => {
-            if (!r.sale_id) return acc;
-            acc[r.sale_id] = (acc[r.sale_id] || 0) + Number(r.total_amount || ((r.unit_price || 0) * (r.qty || 0)));
-            return acc;
-        }, {});
-    }, [approvedReturns]);
 
     const salesBills = useMemo(() => {
         const groups = {};
 
-        sales.forEach(s => {
+        filteredSales.forEach(s => {
             const day = s.date ? new Date(s.date).toISOString().split('T')[0] : 'unknown-date';
             const key = [
                 s.student_name || 'Unknown Student',
@@ -103,12 +133,16 @@ const BookSalesReports = () => {
                 s.payment_method || ''
             ].join('|');
 
+            const netQty = netQtyForSale(s);
+            const netAmount = netAmountForSale(s);
+
             if (!groups[key]) {
                 groups[key] = {
                     key,
                     date: s.date,
                     student_name: s.student_name || 'Unknown Student',
                     student_class: s.student_class || s.class || 'N/A',
+                    student_section: s.student_section || 'N/A',
                     books: [],
                     qty: 0,
                     total_amount: 0,
@@ -116,29 +150,33 @@ const BookSalesReports = () => {
                     concession: Number(s.concession || 0),
                     payment_method: s.payment_method || 'N/A',
                     return_amount: 0,
+                    original_paid_amount: Number(s.paid_amount || 0),
                     sale_ids: []
                 };
             }
 
-            if (!returnedSaleIds.has(s.id)) {
-                groups[key].books.push(s.book_name);
-                groups[key].qty += Number(s.qty || 0);
+            if (netQty > 0) {
+                groups[key].books.push(`${s.book_name} x ${netQty}`);
+                groups[key].qty += netQty;
             }
-            groups[key].total_amount += Number(s.total_amount || 0);
-            groups[key].return_amount += Number(returnAmountBySaleId[s.id] || 0);
+            groups[key].total_amount += netAmount;
+            groups[key].return_amount += toNumber(returnAdjustments[s.id]?.amount);
             groups[key].sale_ids.push(s.id);
         });
 
         return Object.values(groups).map(bill => {
-            const netTotal = Math.max(bill.total_amount - bill.return_amount - bill.concession, 0);
+            const netTotal = Math.max(bill.total_amount - bill.concession, 0);
+            const netPaid = Math.min(bill.original_paid_amount, netTotal);
             return {
                 ...bill,
                 net_total: netTotal,
-                balance: Math.max(netTotal - bill.paid_amount, 0),
-                fully_returned: bill.sale_ids.length > 0 && bill.sale_ids.every(id => returnedSaleIds.has(id))
+                paid_amount: netPaid,
+                refund_due: Math.max(bill.original_paid_amount - netTotal, 0),
+                balance: Math.max(netTotal - netPaid, 0),
+                fully_returned: bill.qty <= 0
             };
         });
-    }, [sales, returnAmountBySaleId, returnedSaleIds]);
+    }, [filteredSales, returnAdjustments]);
 
     const reportSalesBills = useMemo(
         () => salesBills.filter(bill => !bill.fully_returned),
@@ -146,10 +184,45 @@ const BookSalesReports = () => {
     );
 
     const totalRevenue = useMemo(() => reportSalesBills.reduce((a, s) => a + (s.net_total || 0), 0), [reportSalesBills]);
-    const totalCost = useMemo(() => inventory.reduce((a, b) => a + ((b.cost_price || 0) * (b.total_qty - b.stock_available)), 0), [inventory]);
+    const totalPaid = useMemo(() => reportSalesBills.reduce((a, s) => a + (s.paid_amount || 0), 0), [reportSalesBills]);
+    const totalDue = useMemo(() => reportSalesBills.reduce((a, s) => a + (s.balance || 0), 0), [reportSalesBills]);
+    const totalCost = useMemo(() => filteredSales.reduce((total, sale) => {
+        const book = inventory.find(b => b.id === sale.book_id || b.name === sale.book_name);
+        return total + (netQtyForSale(sale) * toNumber(book?.cost_price));
+    }, 0), [filteredSales, inventory, returnAdjustments]);
     const totalProfit = totalRevenue - totalCost;
-    const totalReturnAmount = useMemo(() => approvedReturns.reduce((a, r) => a + Number(r.total_amount || ((r.unit_price || 0) * (r.qty || 0))), 0), [approvedReturns]);
-    const returnRate = useMemo(() => sales.length === 0 ? 0 : ((approvedReturns.length / sales.length) * 100).toFixed(1), [sales, approvedReturns]);
+    const totalReturnAmount = useMemo(() => approvedReturns.reduce((a, r) => a + lineAmount(r), 0), [approvedReturns]);
+    const totalSoldQty = useMemo(() => activeSales.reduce((a, s) => a + netQtyForSale(s), 0), [activeSales, returnAdjustments]);
+    const returnRate = useMemo(() => {
+        const soldQty = filteredSales.reduce((a, s) => a + toNumber(s.qty), 0);
+        const returnedQty = approvedReturns.reduce((a, r) => a + toNumber(r.qty), 0);
+        return soldQty === 0 ? 0 : ((returnedQty / soldQty) * 100).toFixed(1);
+    }, [filteredSales, approvedReturns]);
+
+    const classOptions = useMemo(() => {
+        const names = new Set();
+        sales.forEach(s => {
+            const className = s.student_class || s.class;
+            if (className) names.add(className);
+        });
+        returns.forEach(r => {
+            const className = r.student_class || r.class;
+            if (className) names.add(className);
+        });
+        return Array.from(names).sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+    }, [sales, returns]);
+
+    const sectionOptions = useMemo(() => {
+        const names = new Set();
+        sales.forEach(s => {
+            const className = s.student_class || s.class || 'N/A';
+            const section = s.student_section || 'N/A';
+            if (draftFilters.className === 'All' || className === draftFilters.className) {
+                names.add(section);
+            }
+        });
+        return Array.from(names).sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+    }, [sales, draftFilters.className]);
 
     // Student-wise report (aggregated from sales)
     const studentWise = useMemo(() => {
@@ -164,10 +237,72 @@ const BookSalesReports = () => {
         );
     }, [reportSalesBills]);
 
+    const emptyClassGroup = (className, sectionName = 'N/A') => ({
+        className,
+        sectionName,
+        bills: 0,
+        students: new Set(),
+        books: 0,
+        revenue: 0,
+        paid: 0,
+        due: 0,
+        concession: 0,
+        returnQty: 0,
+        returnAmount: 0,
+        cost: 0,
+    });
+
+    const classWise = useMemo(() => {
+        const groups = {};
+
+        reportSalesBills.forEach(bill => {
+            const className = bill.student_class || 'N/A';
+            const sectionName = bill.student_section || 'N/A';
+            const key = `${className}|${sectionName}`;
+            if (!groups[key]) groups[key] = emptyClassGroup(className, sectionName);
+            groups[key].bills += 1;
+            groups[key].students.add(bill.student_name);
+            groups[key].books += toNumber(bill.qty);
+            groups[key].revenue += toNumber(bill.net_total);
+            groups[key].paid += toNumber(bill.paid_amount);
+            groups[key].due += toNumber(bill.balance);
+            groups[key].concession += toNumber(bill.concession);
+        });
+
+        approvedReturns.forEach(entry => {
+            const className = entry.student_class || entry.class || 'N/A';
+            const sale = sales.find(s => Number(s.id) === Number(entry.sale_id));
+            const sectionName = sale?.student_section || entry.student_section || 'N/A';
+            const key = `${className}|${sectionName}`;
+            if (!groups[key]) groups[key] = emptyClassGroup(className, sectionName);
+            groups[key].returnQty += toNumber(entry.qty);
+            groups[key].returnAmount += lineAmount(entry);
+        });
+
+        filteredSales.forEach(sale => {
+            const className = sale.student_class || sale.class || 'N/A';
+            const sectionName = sale.student_section || 'N/A';
+            const key = `${className}|${sectionName}`;
+            if (!groups[key]) return;
+            const book = inventory.find(b => b.id === sale.book_id || b.name === sale.book_name);
+            groups[key].cost += netQtyForSale(sale) * toNumber(book?.cost_price);
+        });
+
+        return Object.values(groups)
+            .map(group => ({
+                ...group,
+                students: group.students.size,
+                profit: group.revenue - group.cost,
+            }))
+            .sort((a, b) => `${a.className}-${a.sectionName}`.localeCompare(`${b.className}-${b.sectionName}`, undefined, { numeric: true }));
+    }, [reportSalesBills, approvedReturns, filteredSales, inventory, returnAdjustments, sales]);
+
     // Book-wise report
     const bookWise = useMemo(() => {
         return inventory.map(b => {
-            const sold = (b.total_qty || 0) - (b.stock_available || 0);
+            const matchingSales = filteredSales.filter(s => s.book_id === b.id || s.book_name === b.name);
+            const sold = matchingSales.reduce((sum, s) => sum + netQtyForSale(s), 0);
+            const revenue = matchingSales.reduce((sum, s) => sum + netAmountForSale(s), 0);
             return {
                 book: b.name, 
                 type: b.book_type || 'Set', 
@@ -175,11 +310,11 @@ const BookSalesReports = () => {
                 sellingPrice: b.selling_price || 0,
                 sold: sold, 
                 stock: b.stock_available || 0,
-                revenue: sold * (b.selling_price || 0),
-                profit: sold * ((b.selling_price || 0) - (b.cost_price || 0)),
+                revenue,
+                profit: revenue - (sold * (b.cost_price || 0)),
             };
         });
-    }, [inventory]);
+    }, [inventory, filteredSales, returnAdjustments]);
 
     // Monthly Chart Data (Mocking trend from real sales dates)
     const monthlySalesData = useMemo(() => {
@@ -198,13 +333,14 @@ const BookSalesReports = () => {
     // Vendor Chart Data
     const vendorWiseData = useMemo(() => {
         const vMap = {};
-        reportSalesBills.forEach(s => {
-            const vName = "Direct"; 
+        filteredSales.forEach(s => {
+            const book = inventory.find(b => b.id === s.book_id || b.name === s.book_name);
+            const vName = book?.vendor_name || book?.vendor || 'Direct';
             if (!vMap[vName]) vMap[vName] = 0;
-            vMap[vName] += (s.net_total || 0);
+            vMap[vName] += netAmountForSale(s);
         });
         return Object.entries(vMap).map(([vendor, salesRevenue]) => ({ vendor, sales: salesRevenue }));
-    }, [reportSalesBills]);
+    }, [filteredSales, inventory, returnAdjustments]);
 
     const handleExport = (type) => {
         alert(`Exporting ${type} report... (Demo)`);
@@ -235,37 +371,53 @@ const BookSalesReports = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
                         <div className="bs-form-group">
                             <label className="bs-form-label">Date From</label>
-                            <input type="date" className="bs-form-input" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                            <input type="date" className="bs-form-input" value={draftFilters.dateFrom} onChange={e => setDraftFilters(prev => ({ ...prev, dateFrom: e.target.value }))} />
                         </div>
                         <div className="bs-form-group">
                             <label className="bs-form-label">Date To</label>
-                            <input type="date" className="bs-form-input" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                            <input type="date" className="bs-form-input" value={draftFilters.dateTo} onChange={e => setDraftFilters(prev => ({ ...prev, dateTo: e.target.value }))} />
                         </div>
                         <div className="bs-form-group">
                             <label className="bs-form-label">Vendor</label>
-                            <select className="bs-form-select" value={filterVendor} onChange={e => setFilterVendor(e.target.value)}>
+                            <select className="bs-form-select" value={draftFilters.vendor} onChange={e => setDraftFilters(prev => ({ ...prev, vendor: e.target.value }))}>
                                 <option>All</option>
                                 {vendors.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
                             </select>
                         </div>
                         <div className="bs-form-group">
+                            <label className="bs-form-label">Class</label>
+                            <select className="bs-form-select" value={draftFilters.className} onChange={e => setDraftFilters(prev => ({ ...prev, className: e.target.value, section: 'All' }))}>
+                                <option>All</option>
+                                {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div className="bs-form-group">
+                            <label className="bs-form-label">Section</label>
+                            <select className="bs-form-select" value={draftFilters.section} onChange={e => setDraftFilters(prev => ({ ...prev, section: e.target.value }))}>
+                                <option>All</option>
+                                {sectionOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+                        <div className="bs-form-group">
                             <label className="bs-form-label">Book</label>
-                            <select className="bs-form-select" value={filterBook} onChange={e => setFilterBook(e.target.value)}>
+                            <select className="bs-form-select" value={draftFilters.book} onChange={e => setDraftFilters(prev => ({ ...prev, book: e.target.value }))}>
                                 <option>All</option>
                                 {inventory.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                             </select>
                         </div>
                         <div className="bs-form-group" style={{ alignSelf: 'flex-end' }}>
-                            <button className="bs-btn bs-btn-primary" style={{ width: '100%' }}>Apply Filters</button>
+                            <button className="bs-btn bs-btn-primary" style={{ width: '100%' }} onClick={() => setFilters(draftFilters)}>Apply Filters</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 16 }}>
                 {[
-                    { label: 'Total Books Sold', value: activeSales.reduce((a, s) => a + Number(s.qty), 0), icon: '📚', color: '#3d5ee1', bg: '#eef1fd', sub: 'After approved returns' },
-                    { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: '💰', color: '#28c76f', bg: '#e8faf1', sub: 'Gross' },
+                    { label: 'Total Books Sold', value: totalSoldQty, icon: '📚', color: '#3d5ee1', bg: '#eef1fd', sub: 'After approved returns' },
+                    { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: '💰', color: '#28c76f', bg: '#e8faf1', sub: 'After returns and concession' },
+                    { label: 'Total Paid', value: `₹${totalPaid.toLocaleString()}`, icon: '✓', color: '#00cfe8', bg: '#e6fafe', sub: 'Collected' },
+                    { label: 'Total Due', value: `₹${totalDue.toLocaleString()}`, icon: '₹', color: '#ff9f43', bg: '#fff5e6', sub: 'Outstanding' },
                     { label: 'Profit', value: `₹${totalProfit.toLocaleString()}`, icon: '📈', color: '#7367f0', bg: '#efedfd', sub: 'Revenue – Cost' },
                     { label: 'Return Amount', value: `₹${totalReturnAmount.toLocaleString()}`, icon: '🔁', color: '#ea5455', bg: '#fce8e8', sub: `${approvedReturns.length} approved returns` },
                 ].map((card, i) => (
@@ -323,6 +475,7 @@ const BookSalesReports = () => {
                     <h5 className="bs-card-title">📋 Detailed Reports</h5>
                     <div style={{ display: 'flex', gap: 8 }}>
                         {[
+                            { key: 'class', label: 'Class-wise' },
                             { key: 'sales', label: '🧾 Sales-wise' },
                             { key: 'returns', label: '🔁 Return-wise' },
                             { key: 'student', label: '👤 Student-wise' },
@@ -348,6 +501,7 @@ const BookSalesReports = () => {
                                     <th>Class</th>
                                     <th>Books</th>
                                     <th>Total Bill</th>
+                                    <th>Return</th>
                                     <th>Paid</th>
                                     <th>Concession</th>
                                     <th>Balance</th>
@@ -356,7 +510,7 @@ const BookSalesReports = () => {
                             </thead>
                             <tbody>
                                 {reportSalesBills.length === 0 ? (
-                                    <tr><td colSpan={9} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No sales transactions found.</td></tr>
+                                    <tr><td colSpan={10} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No sales transactions found.</td></tr>
                                 ) : reportSalesBills.map((s, i) => (
                                     <tr key={s.key || i}>
                                         <td style={{ fontSize: 12 }}>{s.date ? new Date(s.date).toLocaleDateString() : 'N/A'}</td>
@@ -364,6 +518,7 @@ const BookSalesReports = () => {
                                         <td><span className="bs-badge bs-badge-blue">{s.student_class}</span></td>
                                         <td style={{ fontSize: 12, color: 'var(--bs-muted)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.books.join(', ')}</td>
                                         <td style={{ fontWeight: 600 }}>Rs {(s.net_total || 0).toLocaleString()}</td>
+                                        <td style={{ color: '#ea5455', fontWeight: 600 }}>Rs {(s.return_amount || 0).toLocaleString()}</td>
                                         <td style={{ color: '#28c76f' }}>Rs {(s.paid_amount || 0).toLocaleString()}</td>
                                         <td style={{ color: '#ff9f43' }}>Rs {(s.concession || 0).toLocaleString()}</td>
                                         <td style={{ fontWeight: 700, color: ((s.balance || 0) > 0 ? '#ea5455' : '#28c76f') }}>
@@ -378,6 +533,7 @@ const BookSalesReports = () => {
                                     <tr>
                                         <td colSpan={4} style={{ textAlign: 'right', padding: '12px' }}>TOTALS:</td>
                                         <td>Rs {reportSalesBills.reduce((a, s) => a + (s.net_total || 0), 0).toLocaleString()}</td>
+                                        <td style={{ color: '#ea5455' }}>Rs {reportSalesBills.reduce((a, s) => a + (s.return_amount || 0), 0).toLocaleString()}</td>
                                         <td style={{ color: '#28c76f' }}>Rs {reportSalesBills.reduce((a, s) => a + (s.paid_amount || 0), 0).toLocaleString()}</td>
                                         <td style={{ color: '#ff9f43' }}>Rs {reportSalesBills.reduce((a, s) => a + (s.concession || 0), 0).toLocaleString()}</td>
                                         <td style={{ color: '#ea5455' }}>Rs {reportSalesBills.reduce((a, s) => a + (s.balance || 0), 0).toLocaleString()}</td>
@@ -405,21 +561,75 @@ const BookSalesReports = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {returns.length === 0 ? (
+                                {filteredReturns.length === 0 ? (
                                     <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No return transactions found.</td></tr>
-                                ) : returns.map((r, i) => (
+                                ) : filteredReturns.map((r, i) => (
                                     <tr key={r.id || i}>
                                         <td style={{ fontSize: 12 }}>{r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A'}</td>
                                         <td style={{ fontWeight: 600 }}>{r.student_name}</td>
                                         <td><span className="bs-badge bs-badge-blue">{r.student_class || 'N/A'}</span></td>
                                         <td style={{ fontSize: 12, color: 'var(--bs-muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.book_name}</td>
                                         <td style={{ fontWeight: 700 }}>{r.qty}</td>
-                                        <td style={{ fontWeight: 700, color: '#ea5455' }}>Rs {Number(r.total_amount || ((r.unit_price || 0) * (r.qty || 0))).toLocaleString()}</td>
+                                        <td style={{ fontWeight: 700, color: '#ea5455' }}>Rs {lineAmount(r).toLocaleString()}</td>
                                         <td><span className="bs-badge bs-badge-orange">{r.reason || 'Return'}</span></td>
                                         <td><span className={`bs-badge ${r.status === 'Approved' ? 'bs-badge-green' : r.status === 'Rejected' ? 'bs-badge-red' : 'bs-badge-orange'}`}>{r.status}</span></td>
                                     </tr>
                                 ))}
                             </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {activeTab === 'class' && (
+                    <div className="bs-table-wrap">
+                        <table className="bs-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Class</th>
+                                    <th>Section</th>
+                                    <th>Bills</th>
+                                    <th>Students</th>
+                                    <th>Books Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Paid</th>
+                                    <th>Due</th>
+                                    <th>Returns</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {classWise.length === 0 ? (
+                                    <tr><td colSpan={11} style={{ textAlign: 'center', padding: 32, color: 'var(--bs-muted)' }}>No class-wise data found.</td></tr>
+                                ) : classWise.map((row, i) => (
+                                    <tr key={`${row.className}-${row.sectionName}`}>
+                                        <td style={{ color: 'var(--bs-muted)' }}>{i + 1}</td>
+                                        <td><span className="bs-badge bs-badge-blue">{row.className}</span></td>
+                                        <td><span className="bs-badge bs-badge-purple">{row.sectionName}</span></td>
+                                        <td style={{ fontWeight: 600 }}>{row.bills}</td>
+                                        <td style={{ fontWeight: 600 }}>{row.students}</td>
+                                        <td style={{ fontWeight: 700 }}>{row.books}</td>
+                                        <td style={{ fontWeight: 700, color: '#28c76f' }}>Rs {row.revenue.toLocaleString()}</td>
+                                        <td style={{ color: '#28c76f' }}>Rs {row.paid.toLocaleString()}</td>
+                                        <td style={{ color: row.due > 0 ? '#ea5455' : '#28c76f', fontWeight: 700 }}>Rs {row.due.toLocaleString()}</td>
+                                        <td style={{ color: '#ea5455' }}>{row.returnQty} / Rs {row.returnAmount.toLocaleString()}</td>
+                                        <td style={{ fontWeight: 700, color: row.profit >= 0 ? '#7367f0' : '#ea5455' }}>Rs {row.profit.toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                            {classWise.length > 0 && (
+                                <tfoot style={{ background: '#f8f9fb', fontWeight: 800 }}>
+                                    <tr>
+                                        <td colSpan={5} style={{ textAlign: 'right', padding: '12px' }}>TOTALS:</td>
+                                        <td>{classWise.reduce((a, row) => a + row.books, 0).toLocaleString()}</td>
+                                        <td style={{ color: '#28c76f' }}>Rs {classWise.reduce((a, row) => a + row.revenue, 0).toLocaleString()}</td>
+                                        <td style={{ color: '#28c76f' }}>Rs {classWise.reduce((a, row) => a + row.paid, 0).toLocaleString()}</td>
+                                        <td style={{ color: '#ea5455' }}>Rs {classWise.reduce((a, row) => a + row.due, 0).toLocaleString()}</td>
+                                        <td style={{ color: '#ea5455' }}>{classWise.reduce((a, row) => a + row.returnQty, 0).toLocaleString()} / Rs {classWise.reduce((a, row) => a + row.returnAmount, 0).toLocaleString()}</td>
+                                        <td style={{ color: '#7367f0' }}>Rs {classWise.reduce((a, row) => a + row.profit, 0).toLocaleString()}</td>
+                                    </tr>
+                                </tfoot>
+                            )}
                         </table>
                     </div>
                 )}
@@ -518,7 +728,8 @@ const BookSalesReports = () => {
                 <div className="bs-table-footer">
                     <span>
                         {activeTab === 'sales' && `${reportSalesBills.length} sales bills`}
-                        {activeTab === 'returns' && `${returns.length} returns`}
+                        {activeTab === 'returns' && `${filteredReturns.length} returns`}
+                        {activeTab === 'class' && `${classWise.length} classes`}
                         {activeTab === 'student' && `${studentWise.length} students`}
                         {activeTab === 'vendor' && `${vendors.length} vendors`}
                         {activeTab === 'book' && `${bookWise.length} books`}

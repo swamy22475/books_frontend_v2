@@ -136,6 +136,7 @@ const bookInventoryData = [
 const quickReportLinks = {
     'Academics': [
         { label: 'Student Report', icon: '👨‍🎓', path: '/school/reports/student', color: '#3d5ee1' },
+        { label: 'Class-wise Analytics', icon: '📊', path: '/school/reports/class-wise', color: '#ff9f43' },
         { label: 'Progress Report', icon: '📈', path: '/school/reports/progress-report', color: '#7367f0' },
         { label: 'Class Report', icon: '🏫', path: '/school/reports/class', color: '#28c76f' },
         { label: 'Merit Report', icon: '🏆', path: '/school/reports/merit', color: '#ff9f43' },
