@@ -1,6 +1,6 @@
 import React, { useContext, useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { IconCash, IconEye, IconTrash, IconX, IconPrinter } from '@tabler/icons-react';
+import { IconCash, IconEye, IconTrash, IconX, IconPrinter, IconEdit } from '@tabler/icons-react';
 import { salesService } from '../../../api/sales';
 import { inventoryService } from '../../../api/inventory';
 import { returnsService } from '../../../api/returns';
@@ -44,6 +44,7 @@ const SalesEntry = () => {
     const [saveState, setSaveState] = useState('idle');
     const [student, setStudent] = useState(emptyStudent);
     const [viewSale, setViewSale] = useState(null);
+    const [editingSale, setEditingSale] = useState(null);
     const [paySale, setPaySale] = useState(null);
     const [payAmount, setPayAmount] = useState('');
     const [selected, setSelected] = useState(emptySelected);
@@ -191,6 +192,34 @@ const SalesEntry = () => {
     );
     const cartBookCount = cartItems.length;
 
+    const handleEditSale = (sale) => {
+        setStudent({
+            name: sale.student,
+            phone: sale.phone || '',
+            class: sale.class,
+            section: sale.section || '',
+            payment: sale.records[0]?.payment_method || 'Cash',
+            date: sale.date || today,
+            paidAmount: sale.paid || 0,
+            concession: sale.concession || 0
+        });
+
+        const newSelected = {};
+        sale.records.forEach(record => {
+            const book = inventory.find(b => b.id === record.book_id) || {
+                id: record.book_id,
+                name: record.book,
+                sellingPrice: record.price,
+                type: record.type,
+                stock: 999
+            };
+            newSelected[book.id] = { book, qty: record.qty, type: record.type };
+        });
+        setSelected(newSelected);
+        setEditingSale(sale);
+        setShowModal(true);
+    };
+
     const handleSubmit = async () => {
         if (!student.name || cartItems.length === 0) return;
 
@@ -200,29 +229,66 @@ const SalesEntry = () => {
 
         try {
             const totalBill = cartTotal - Number(student.concession || 0);
-            const remaining = totalBill - Number(student.paidAmount || 0);
+            const remaining = Math.max(totalBill - Number(student.paidAmount || 0), 0);
 
-            const promises = cartItems.map(item => {
-                const saleData = {
-                    book_id: item.book.id,
-                    student_name: student.name,
-                    student_phone: student.phone,
-                    class: student.class,
-                    student_section: student.section || null,
-                    book_name: item.book.name,
-                    book_type: item.type,
-                    qty: item.qty,
-                    unit_price: item.book.sellingPrice,
-                    total_amount: item.book.sellingPrice * item.qty,
-                    paid_amount: Number(student.paidAmount) || 0,
-                    concession: Number(student.concession) || 0,
-                    remaining_amount: remaining,
-                    payment_method: student.payment
-                };
-                return salesService.create(saleData);
-            });
+            if (editingSale) {
+                const oldRecordMap = {};
+                editingSale.records.forEach(r => oldRecordMap[r.book_id] = r);
 
-            await Promise.all(promises);
+                const promises = [];
+                cartItems.forEach(item => {
+                    const saleData = {
+                        book_id: item.book.id,
+                        student_name: student.name,
+                        student_phone: student.phone,
+                        class: student.class,
+                        student_section: student.section || null,
+                        book_name: item.book.name,
+                        book_type: item.type,
+                        qty: item.qty,
+                        unit_price: item.book.sellingPrice,
+                        total_amount: item.book.sellingPrice * item.qty,
+                        paid_amount: Number(student.paidAmount) || 0,
+                        concession: Number(student.concession) || 0,
+                        remaining_amount: remaining,
+                        payment_method: student.payment
+                    };
+
+                    if (oldRecordMap[item.book.id]) {
+                        promises.push(salesService.update(oldRecordMap[item.book.id].id, saleData));
+                        delete oldRecordMap[item.book.id];
+                    } else {
+                        promises.push(salesService.create(saleData));
+                    }
+                });
+
+                Object.values(oldRecordMap).forEach(oldRecord => {
+                    promises.push(salesService.delete(oldRecord.id));
+                });
+
+                await Promise.all(promises);
+            } else {
+                const promises = cartItems.map(item => {
+                    const saleData = {
+                        book_id: item.book.id,
+                        student_name: student.name,
+                        student_phone: student.phone,
+                        class: student.class,
+                        student_section: student.section || null,
+                        book_name: item.book.name,
+                        book_type: item.type,
+                        qty: item.qty,
+                        unit_price: item.book.sellingPrice,
+                        total_amount: item.book.sellingPrice * item.qty,
+                        paid_amount: Number(student.paidAmount) || 0,
+                        concession: Number(student.concession) || 0,
+                        remaining_amount: remaining,
+                        payment_method: student.payment
+                    };
+                    return salesService.create(saleData);
+                });
+                await Promise.all(promises);
+            }
 
             const elapsed = Date.now() - startTime;
             if (elapsed < 800) await new Promise(resolve => setTimeout(resolve, 800 - elapsed));
@@ -230,6 +296,7 @@ const SalesEntry = () => {
             await Promise.all([fetchSales(), fetchInventory()]);
             setSelected(emptySelected);
             setStudent(emptyStudent);
+            setEditingSale(null);
             setSubmitted(true);
             setSaveState('success');
             setTimeout(() => setSubmitted(false), 3500);
@@ -244,6 +311,7 @@ const SalesEntry = () => {
 
     const handleClose = () => {
         setShowModal(false);
+        setEditingSale(null);
         setSelected(emptySelected);
         setStudent(emptyStudent);
         setBookSearch('');
@@ -317,44 +385,6 @@ const SalesEntry = () => {
 
     const handlePrintBill = (sale) => {
         setPrintSale(sale);
-        setTimeout(() => {
-            if (printRef.current) {
-                const printWindow = window.open('', '_blank');
-                const printContent = printRef.current.innerHTML;
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Bill - ${sale.student}</title>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <style>
-                            ${Array.from(document.styleSheets)
-                                .map(sheet => {
-                                    try {
-                                        return Array.from(sheet.cssRules || sheet.rules)
-                                            .map(rule => rule.cssText)
-                                            .join('\n');
-                                    } catch (e) {
-                                        return '';
-                                    }
-                                })
-                                .join('\n')}
-                        </style>
-                    </head>
-                    <body>
-                        ${printContent}
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(() => {
-                    printWindow.print();
-                    printWindow.close();
-                }, 250);
-            }
-        }, 100);
     };
 
     const approvedReturns = useMemo(
@@ -547,6 +577,9 @@ const SalesEntry = () => {
                                     <td style={{ color: 'var(--bs-muted)' }}>{s.date}</td>
                                     <td>
                                         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                            <button className="bs-btn-icon bs-btn-icon-view" title="Edit Bill" onClick={() => handleEditSale(s)}>
+                                                <IconEdit size={16} />
+                                            </button>
                                             <button className="bs-btn-icon bs-btn-icon-view" title="Print Bill" onClick={() => handlePrintBill(s)}>
                                                 <IconPrinter size={16} />
                                             </button>
@@ -584,7 +617,7 @@ const SalesEntry = () => {
                 <div className="bs-modal-overlay" onClick={handleClose}>
                     <div className="se-modal" onClick={e => e.stopPropagation()}>
                         <div className="bs-modal-header">
-                            <h5 className="bs-modal-title">🧾 New Sale Entry</h5>
+                            <h5 className="bs-modal-title">🧾 {editingSale ? 'Edit Sale Entry' : 'New Sale Entry'}</h5>
                             <button className="bs-modal-close" onClick={handleClose}>×</button>
                         </div>
                         <div className="se-modal-body">
@@ -836,7 +869,7 @@ const SalesEntry = () => {
                                     style={{ opacity: (!student.name || cartItems.length === 0) ? 0.5 : 1, cursor: (!student.name || cartItems.length === 0) ? 'not-allowed' : 'pointer' }}
                                     onClick={handleSubmit}
                                 >
-                                    ✔ Submit Sale ({cartBookCount > 0 ? `${cartBookCount} books · ₹${cartTotal.toLocaleString()}` : '—'})
+                                    ✔ {editingSale ? 'Update Sale' : 'Submit Sale'} ({cartBookCount > 0 ? `${cartBookCount} books · ₹${cartTotal.toLocaleString()}` : '—'})
                                 </button>
                             </div>
                         </div>
@@ -967,50 +1000,59 @@ const SalesEntry = () => {
 
             {printSale && (
                 <div className="bs-modal-overlay" onClick={() => setPrintSale(null)}>
-                    <div className="bs-modal bs-modal-print" onClick={e => e.stopPropagation()}>
+                    <div
+                        className="bs-modal bs-modal-print"
+                        onClick={e => e.stopPropagation()}
+                        style={{ width: '240mm', maxWidth: '95vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+                    >
                         <div className="bs-modal-header">
-                            <h5 className="bs-modal-title">🖨️ Print Bill - {printSale.student}</h5>
+                            <h5 className="bs-modal-title">🖨️ Print Preview — {printSale.student}</h5>
                             <button className="bs-modal-close" onClick={() => setPrintSale(null)}>×</button>
                         </div>
-                        <div className="bs-modal-body" style={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}>
+
+                        {/* A4 preview area */}
+                        <div style={{
+                            flex: 1,
+                            overflow: 'auto',
+                            background: '#94a3b8',
+                            padding: '20px',
+                            display: 'flex',
+                            justifyContent: 'center',
+                        }}>
                             <BillPrint ref={printRef} sale={printSale} />
                         </div>
+
                         <div className="bs-modal-footer">
                             <button className="bs-btn bs-btn-outline" onClick={() => setPrintSale(null)}>Close</button>
-                            <button 
+                            <button
                                 className="bs-btn bs-btn-primary bs-btn-animated"
                                 onClick={() => {
-                                    if (printRef.current) {
-                                        const printWindow = window.open('', '_blank');
-                                        const printContent = printRef.current.innerHTML;
-                                        printWindow.document.write(`
-                                            <!DOCTYPE html>
-                                            <html>
-                                            <head>
-                                                <title>Bill - ${printSale.student}</title>
-                                                <meta charset="UTF-8">
-                                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                                <style>
-                                                    ${Array.from(document.styleSheets)
-                                                        .map(sheet => {
-                                                            try {
-                                                                return Array.from(sheet.cssRules || sheet.rules)
-                                                                    .map(rule => rule.cssText)
-                                                                    .join('\n');
-                                                            } catch (e) {
-                                                                return '';
-                                                            }
-                                                        })
-                                                        .join('\n')}
-                                                </style>
-                                            </head>
-                                            <body onload="window.focus(); window.print();">
-                                                ${printContent}
-                                            </body>
-                                            </html>
-                                        `);
-                                        printWindow.document.close();
-                                    }
+                                    if (!printRef.current) return;
+                                    const printWindow = window.open('', '_blank', 'width=900,height=700');
+                                    const billCss = Array.from(document.styleSheets)
+                                        .map(sheet => {
+                                            try {
+                                                return Array.from(sheet.cssRules || sheet.rules)
+                                                    .map(r => r.cssText).join('\n');
+                                            } catch { return ''; }
+                                        }).join('\n');
+
+                                    printWindow.document.write(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice — ${printSale.student}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; }
+    ${billCss}
+  </style>
+</head>
+<body onload="window.focus(); window.print();">
+  ${printRef.current.outerHTML}
+</body>
+</html>`);
+                                    printWindow.document.close();
                                 }}
                             >
                                 <IconPrinter size={16} />
@@ -1020,6 +1062,7 @@ const SalesEntry = () => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

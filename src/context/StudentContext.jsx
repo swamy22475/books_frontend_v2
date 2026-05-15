@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { StudentContext } from './StudentContextDefinition';
+import { useAuth } from './AuthContext';
 
 export { StudentContext }; // Re-export for compatibility
 
-export const StudentProvider = ({ children }) => {
+const StudentProviderInner = ({ children, tenantId }) => {
     // Initial Mock Data
     const [students, setStudents] = useState([
         { id: 'PRE2209', name: 'Aaliyah', class: '10', section: 'A', rollNo: '1001', gender: 'Female', image: '' },
@@ -180,5 +181,16 @@ export const StudentProvider = ({ children }) => {
         }}>
             {children}
         </StudentContext.Provider>
+    );
+};
+
+export const StudentProvider = ({ children }) => {
+    const { user } = useAuth();
+    const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || 'default';
+
+    return (
+        <StudentProviderInner key={tenantId} tenantId={tenantId}>
+            {children}
+        </StudentProviderInner>
     );
 };

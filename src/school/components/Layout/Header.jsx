@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../components/provider/theme-provider';
 import { useAuth } from '../../../context/AuthContext';
+import { useSettings } from '../../../context/SettingsContext';
 import {
     CalendarIcon, PlusIcon, MoonIcon, BellIcon, MessageIcon,
     ChartBarIcon, MaximizeIcon, MenuIcon, SearchIcon,
@@ -49,6 +50,8 @@ const InvoiceIcon = ({ size = 24, color = '#fff' }) => (
 const Header = ({ toggleSidebar }) => {
     const { theme, setTheme } = useTheme();
     const { user, logout } = useAuth();
+    const settings = useSettings();
+    const settingsLogo = settings?.logo || null;
     const isDarkMode = theme === 'dark';
     const displayName = user?.username || 'Admin User';
     const schoolName = user?.school_name || user?.tenant_id || 'School Principal';
@@ -136,7 +139,7 @@ const Header = ({ toggleSidebar }) => {
     return (
         <header className="top-header">
             <div className="header-left">
-                {/* Menu toggle removed as requested */}
+                {/* Logo is in the sidebar top-left */}
             </div>
 
             <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingRight: '20px' }}>

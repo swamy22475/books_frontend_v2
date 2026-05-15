@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { NavLink, useParams } from 'react-router-dom';
+import { useSettings } from '../../../context/SettingsContext';
 import {
     IconLayoutDashboard, IconApps, IconUser, IconUsers, IconUserPlus,
     IconSchool, IconBook, IconBooks, IconCalendar, IconClock,
@@ -88,6 +89,11 @@ const menuData = [
             { title: 'Reports & Analytics', icon: IconChartBar, path: '/school/book-sales/reports' },
         ]
     }
+];
+
+// Settings action items (not nav links — they open modals)
+const settingsItems = [
+    { title: 'Logo Settings', action: 'logo-settings', icon: IconUpload },
 ];
 
 // Recursive component for nested menu items
@@ -193,7 +199,56 @@ const SidebarMenuItem = ({ item, tenantId }) => {
     );
 };
 
-const Sidebar = ({ isOpen }) => {
+/* ─── Settings collapsible menu item ─── */
+const SettingsMenuItem = ({ items, onAction }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="menu-item-container">
+            <a
+                href="#"
+                className={`menu-item ${isOpen ? 'active' : ''}`}
+                onClick={(e) => { e.preventDefault(); setIsOpen(!isOpen); }}
+            >
+                <span className="menu-item-content">
+                    <IconSettings size={18} stroke={1.5} />
+                    <span className="menu-title-text">Settings</span>
+                </span>
+                {isOpen ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
+            </a>
+            {isOpen && (
+                <ul className="submenu">
+                    {items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <li key={item.action}>
+                                <button
+                                    className="submenu-link settings-action-btn"
+                                    onClick={() => onAction?.(item.action)}
+                                    style={{
+                                        width: '100%',
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        textAlign: 'left',
+                                    }}
+                                >
+                                    <Icon size={14} stroke={1.5} style={{ flexShrink: 0 }} />
+                                    {item.title}
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </div>
+    );
+};
+
+const Sidebar = ({ isOpen, onSettingsAction }) => {
     const { tenantId: routeTenantId } = useParams();
     const tenantId = routeTenantId || localStorage.getItem('tenant_id') || 'default';
     // ── Get current user role (graceful fallback) ──
@@ -237,9 +292,20 @@ const Sidebar = ({ isOpen }) => {
             .filter(Boolean);
     }, [roleAccess]);
 
+    const { logo } = useSettings();
+
     return (
         <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-            {/* Sidebar header removed as requested */}
+            {/* Sidebar Logo Header */}
+            <div className="sidebar-header">
+                <div className="sidebar-logo-area">
+                    {logo ? (
+                        <img src={logo} alt="School Logo" className="sidebar-logo-img" />
+                    ) : (
+                        <span className="sidebar-brand-text">Book Sales</span>
+                    )}
+                </div>
+            </div>
 
             <div className="sidebar-menu">
                 {filteredMenuData.map((section, idx) => (
@@ -254,6 +320,19 @@ const Sidebar = ({ isOpen }) => {
                         </ul>
                     </div>
                 ))}
+
+                {/* ── Settings Section ── */}
+                <div className="menu-section">
+                    <h6 className="menu-group-title">Settings</h6>
+                    <ul className="menu-list">
+                        <li>
+                            <SettingsMenuItem
+                                items={settingsItems}
+                                onAction={onSettingsAction}
+                            />
+                        </li>
+                    </ul>
+                </div>
             </div>
         </aside>
     );

@@ -92,6 +92,42 @@ body {
     flex-shrink: 0;
 }
 
+/* Logo / brand in the sidebar header */
+.sidebar-logo-area {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+}
+
+.sidebar-logo-img {
+    max-height: 46px;
+    max-width: calc(var(--sidebar-width) - 40px);
+    width: 100%;
+    object-fit: contain;
+    object-position: left center;
+    display: block;
+}
+
+.sidebar-brand-text {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Hide text / shrink logo when sidebar is collapsed */
+.sidebar.collapsed .sidebar-brand-text {
+    display: none;
+}
+.sidebar.collapsed .sidebar-logo-img {
+    max-width: calc(var(--sidebar-collapsed-width) - 16px);
+    object-position: center center;
+}
+
 .logo {
     display: flex;
     align-items: center;
@@ -279,6 +315,20 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+}
+
+/* Logo in header top-left */
+.header-logo-wrap {
+    display: flex;
+    align-items: center;
+    height: calc(var(--header-height) - 16px);
+}
+
+.header-logo-img {
+    max-height: 44px;
+    max-width: 200px;
+    object-fit: contain;
+    display: block;
 }
 
 .header-left {

@@ -1,9 +1,10 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 
+import { useAuth } from './AuthContext';
+
 export const AcademicsContext = createContext();
 
-export const AcademicsProvider = ({ children }) => {
-    const tenantId = localStorage.getItem('tenant_id') || 'default';
+const AcademicsProviderInner = ({ children, tenantId }) => {
     const storageKey = `academics_master_${tenantId}`;
 
     // Master list for subject selection
@@ -194,5 +195,16 @@ export const AcademicsProvider = ({ children }) => {
         }}>
             {children}
         </AcademicsContext.Provider>
+    );
+};
+
+export const AcademicsProvider = ({ children }) => {
+    const { user } = useAuth();
+    const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || 'default';
+
+    return (
+        <AcademicsProviderInner key={tenantId} tenantId={tenantId}>
+            {children}
+        </AcademicsProviderInner>
     );
 };
