@@ -49,7 +49,7 @@ const SchoolLogin = () => {
       const token = response.access_token;
       const userData = response.user;
 
-      if (userData.tenant_id === 'default' || userData.role === 'admin') {
+      if (userData.tenant_id === 'default') {
         throw new Error('Please use /admin/login for admin access.');
       }
 
