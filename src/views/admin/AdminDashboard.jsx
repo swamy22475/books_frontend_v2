@@ -632,7 +632,7 @@ const AdminDashboard = () => {
                         name="username"
                         value={editFormData.username}
                         onChange={handleEditInputChange}
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50"
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
                         required
                         disabled={actionLoadingId === editingUser.id}
                       />
@@ -647,7 +647,7 @@ const AdminDashboard = () => {
                         name="password"
                         value={editFormData.password}
                         onChange={handleEditInputChange}
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50"
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
                         placeholder="Leave blank"
                         disabled={actionLoadingId === editingUser.id}
                       />
@@ -664,7 +664,7 @@ const AdminDashboard = () => {
                       name="email"
                       value={editFormData.email}
                       onChange={handleEditInputChange}
-                      className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50"
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
                       required
                       disabled={actionLoadingId === editingUser.id}
                     />
@@ -680,7 +680,7 @@ const AdminDashboard = () => {
                       name="mobile"
                       value={editFormData.mobile}
                       onChange={handleEditInputChange}
-                      className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50"
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
                       disabled={actionLoadingId === editingUser.id}
                     />
                   </div>
@@ -695,7 +695,7 @@ const AdminDashboard = () => {
                       name="schoolName"
                       value={editFormData.schoolName}
                       onChange={handleEditInputChange}
-                      className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50"
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-600 disabled:opacity-100"
                       required
                       disabled={actionLoadingId === editingUser.id}
                     />

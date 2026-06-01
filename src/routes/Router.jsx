@@ -17,6 +17,9 @@ const Error = Loadable(lazy(() => import('../views/authentication/Error')));
 const AdminLogin = Loadable(lazy(() => import('../views/admin/AdminLogin')));
 const AdminDashboard = Loadable(lazy(() => import('../views/admin/AdminDashboard')));
 
+// User Profile
+const UserProfile = Loadable(lazy(() => import('../views/pages/user-profile/UserProfile')));
+
 // Book Sales Pages
 const BookSalesDashboard = Loadable(lazy(() => import('../school/pages/BookSales/BookSalesDashboard')));
 const BookSalesVendors = Loadable(lazy(() => import('../school/pages/BookSales/Vendors')));
@@ -53,6 +56,20 @@ const Router = [
     children: [
       { path: 'login', element: <AdminLogin /> },
       { path: 'dashboard', element: <AdminDashboard /> },
+    ],
+  },
+
+  // User Profile Route
+  {
+    path: '/super/user-profile',
+    element: (
+      <AuthGuard>
+        <SchoolAdminLayout />
+      </AuthGuard>
+    ),
+    errorElement: <ErrorElement />,
+    children: [
+      { index: true, element: <UserProfile /> },
     ],
   },
 

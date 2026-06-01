@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from './AuthContext';
+import { api } from '../lib/api-client';
 
 export const AcademicsContext = createContext();
 
@@ -42,10 +43,8 @@ const AcademicsProviderInner = ({ children, tenantId }) => {
         }
     }, [storageKey]);
 
-    const [classes, setClasses] = useState(savedAcademics.classes || defaultClasses);
-
-    // Initial Mock Data for Sections
-    const [sections, setSections] = useState(savedAcademics.sections || defaultSections);
+    const [classes, setClasses] = useState([]);
+    const [sections, setSections] = useState([]);
 
     // Initial Mock Data for Subjects
     const [subjects, setSubjects] = useState([
@@ -77,15 +76,45 @@ const AcademicsProviderInner = ({ children, tenantId }) => {
     const [promotions, setPromotions] = useState([]);
 
     useEffect(() => {
-        localStorage.setItem(storageKey, JSON.stringify({ classes, sections }));
-    }, [classes, sections, storageKey]);
+        // Fetch classes and sections from backend API
+        const fetchData = async () => {
+            if (!localStorage.getItem('auth_token') && !sessionStorage.getItem('auth_token')) return;
+            if (tenantId === 'default') return;
 
-    const addClass = (newClass) => {
-        setClasses([...classes, { ...newClass, id: Date.now(), academicStatus: newClass.academicStatus || 'Active' }]);
+            try {
+                const fetchedClasses = await api.get('/api/v1/academics/classes');
+                setClasses(fetchedClasses);
+                const fetchedSections = await api.get('/api/v1/academics/sections');
+                setSections(fetchedSections);
+            } catch (error) {
+                console.error("Error fetching academics data:", error);
+            }
+        };
+        fetchData();
+    }, [tenantId]);
+
+    // Periodically save other mock data to local storage (ignoring classes/sections)
+    useEffect(() => {
+        const legacyData = { subjects, assignments, periods, timetable, homework, promotions, students };
+        localStorage.setItem(storageKey, JSON.stringify(legacyData));
+    }, [subjects, assignments, periods, timetable, homework, promotions, students, storageKey]);
+
+    const addClass = async (newClass) => {
+        try {
+            const created = await api.post('/api/v1/academics/classes', newClass);
+            setClasses([...classes, created]);
+        } catch (error) {
+            console.error("Error adding class:", error);
+        }
     };
 
-    const addSection = (newSection) => {
-        setSections([...sections, { ...newSection, id: Date.now(), academicStatus: newSection.academicStatus || 'Active' }]);
+    const addSection = async (newSection) => {
+        try {
+            const created = await api.post('/api/v1/academics/sections', newSection);
+            setSections([...sections, created]);
+        } catch (error) {
+            console.error("Error adding section:", error);
+        }
     };
 
     const addSubject = (newSubject) => {
@@ -145,16 +174,31 @@ const AcademicsProviderInner = ({ children, tenantId }) => {
         setHomework(homework.map(h => h.id === parseInt(id) ? { ...h, ...updatedData } : h));
     };
 
-    const deleteClass = (id) => {
-        setClasses(classes.filter(c => c.id !== id));
+    const deleteClass = async (id) => {
+        try {
+            await api.delete(`/api/v1/academics/classes/${id}`);
+            setClasses(classes.filter(c => c.id !== id));
+        } catch (error) {
+            console.error("Error deleting class:", error);
+        }
     };
 
-    const updateClass = (id, updatedData) => {
-        setClasses(classes.map(c => c.id === parseInt(id) ? { ...c, ...updatedData } : c));
+    const updateClass = async (id, updatedData) => {
+        try {
+            const updated = await api.put(`/api/v1/academics/classes/${id}`, updatedData);
+            setClasses(classes.map(c => c.id === parseInt(id) ? updated : c));
+        } catch (error) {
+            console.error("Error updating class:", error);
+        }
     };
 
-    const deleteSection = (id) => {
-        setSections(sections.filter(s => s.id !== id));
+    const deleteSection = async (id) => {
+        try {
+            await api.delete(`/api/v1/academics/sections/${id}`);
+            setSections(sections.filter(s => s.id !== id));
+        } catch (error) {
+            console.error("Error deleting section:", error);
+        }
     };
 
     const deleteSubject = (id) => {
@@ -173,8 +217,13 @@ const AcademicsProviderInner = ({ children, tenantId }) => {
         setAssignments(assignments.map(a => a.id === parseInt(id) ? { ...a, ...updatedData } : a));
     };
 
-    const updateSection = (id, updatedData) => {
-        setSections(sections.map(s => s.id === parseInt(id) ? { ...s, ...updatedData } : s));
+    const updateSection = async (id, updatedData) => {
+        try {
+            const updated = await api.put(`/api/v1/academics/sections/${id}`, updatedData);
+            setSections(sections.map(s => s.id === parseInt(id) ? updated : s));
+        } catch (error) {
+            console.error("Error updating section:", error);
+        }
     };
 
     const deletePeriod = (id) => {

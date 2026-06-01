@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../components/provider/theme-provider';
 import { useAuth } from '../../../context/AuthContext';
 import { useSettings } from '../../../context/SettingsContext';
+import UserSettingsModal from '../UserSettingsModal/UserSettingsModal';
 import {
     CalendarIcon, PlusIcon, MoonIcon, BellIcon, MessageIcon,
     ChartBarIcon, MaximizeIcon, MenuIcon, SearchIcon,
@@ -69,6 +70,7 @@ const Header = ({ toggleSidebar }) => {
     const addRef = useRef(null);
     const yearRef = useRef(null);
     const navigate = useNavigate();
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
 
     const academicYears = [
         '2024 / 2025',
@@ -264,13 +266,25 @@ const Header = ({ toggleSidebar }) => {
                             <div className="dropdown-divider"></div>
                             <ul className="dropdown-menu-list">
                                 <li>
-                                    <button className="dropdown-menu-item">
+                                    <button 
+                                        className="dropdown-menu-item"
+                                        onClick={() => {
+                                            navigate('/user-profile');
+                                            setShowProfileDropdown(false);
+                                        }}
+                                    >
                                         <UserIcon size={18} />
                                         <span>My Profile</span>
                                     </button>
                                 </li>
                                 <li>
-                                    <button className="dropdown-menu-item">
+                                    <button 
+                                        className="dropdown-menu-item"
+                                        onClick={() => {
+                                            setShowSettingsModal(true);
+                                            setShowProfileDropdown(false);
+                                        }}
+                                    >
                                         <SettingsIcon size={18} />
                                         <span>Settings</span>
                                     </button>
@@ -290,6 +304,17 @@ const Header = ({ toggleSidebar }) => {
                     )}
                 </div>
             </div>
+            <UserSettingsModal 
+                isOpen={showSettingsModal}
+                onClose={() => setShowSettingsModal(false)}
+                currentUser={user}
+                onUpdateSuccess={(updatedUser) => {
+                    // Update user in context/localStorage if needed
+                    if (updatedUser?.user) {
+                        localStorage.setItem('auth_user', JSON.stringify(updatedUser.user));
+                    }
+                }}
+            />
         </header>
     );
 };

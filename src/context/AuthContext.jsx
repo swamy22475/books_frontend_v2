@@ -94,7 +94,12 @@ export const AuthProvider = ({ children }) => {
     sessionStorage.removeItem('tenant_id');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
+    
+    // Clear legacy academics mock data from localStorage
+    const tenantId = localStorage.getItem('tenant_id') || 'default';
+    localStorage.removeItem(`academics_master_${tenantId}`);
     localStorage.removeItem('tenant_id');
+    
     setUser(null);
   }, []);
 
