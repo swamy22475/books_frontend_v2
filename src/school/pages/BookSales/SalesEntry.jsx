@@ -25,7 +25,7 @@ const StockBadge = ({ book }) => {
 
 const emptySelected = {};
 const emptyStudent = { 
-    name: '', phone: '', class: '', section: '', payment: 'Cash', date: today,
+    name: '', phone: '', class: '', section: '', rollNo: '', payment: 'Cash', date: today,
     paidAmount: 0, concession: 0 
 };
 
@@ -87,6 +87,7 @@ const SalesEntry = () => {
                 phone: s.student_phone || '',
                 class: s.student_class || s.class,
                 section: s.student_section || '',
+                rollNo: s.student_roll_no || '',
                 book: s.book_name,
                 qty: s.qty,
                 type: s.book_type,
@@ -198,6 +199,7 @@ const SalesEntry = () => {
             phone: sale.phone || '',
             class: sale.class,
             section: sale.section || '',
+            rollNo: sale.rollNo || '',
             payment: sale.records[0]?.payment_method || 'Cash',
             date: sale.date || today,
             paidAmount: sale.paid || 0,
@@ -243,6 +245,7 @@ const SalesEntry = () => {
                         student_phone: student.phone,
                         class: student.class,
                         student_section: student.section || null,
+                        student_roll_no: student.rollNo || null,
                         book_name: item.book.name,
                         book_type: item.type,
                         qty: item.qty,
@@ -275,6 +278,7 @@ const SalesEntry = () => {
                         student_phone: student.phone,
                         class: student.class,
                         student_section: student.section || null,
+                        student_roll_no: student.rollNo || null,
                         book_name: item.book.name,
                         book_type: item.type,
                         qty: item.qty,
@@ -348,6 +352,7 @@ const SalesEntry = () => {
                 student_phone: record.phone,
                 class: record.class,
                 student_section: record.section || null,
+                student_roll_no: record.rollNo || null,
                 book_name: record.book,
                 book_type: record.type,
                 qty: record.qty,
@@ -629,6 +634,12 @@ const SalesEntry = () => {
                                         <input className="bs-form-input" placeholder="e.g. Aarav Sharma"
                                             value={student.name}
                                             onChange={e => setStudent({ ...student, name: e.target.value })} />
+                                    </div>
+                                    <div className="bs-form-group">
+                                        <label className="bs-form-label">Roll No</label>
+                                        <input className="bs-form-input" placeholder="e.g. 101"
+                                            value={student.rollNo}
+                                            onChange={e => setStudent({ ...student, rollNo: e.target.value })} />
                                     </div>
                                     <div className="bs-form-group">
                                         <label className="bs-form-label">Phone Number</label>

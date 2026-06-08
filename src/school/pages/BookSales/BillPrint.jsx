@@ -5,284 +5,265 @@ import './BillPrint.css';
 const fmt = (v) =>
     Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
-    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen',
-    'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-const tensW = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-const twoD = (n) => (n < 20 ? ones[n] : `${tensW[Math.floor(n / 10)]}${n % 10 ? ' ' + ones[n % 10] : ''}`);
-const toWords = (val) => {
-    const n = Math.floor(Number(val || 0));
-    if (n === 0) return 'Zero Rupees Only';
-    const p = [];
-    const cr = Math.floor(n / 1e7);
-    const lk = Math.floor((n % 1e7) / 1e5);
-    const th = Math.floor((n % 1e5) / 1e3);
-    const hu = Math.floor((n % 1e3) / 100);
-    const re = n % 100;
-    if (cr) p.push(`${twoD(cr)} Crore`);
-    if (lk) p.push(`${twoD(lk)} Lakh`);
-    if (th) p.push(`${twoD(th)} Thousand`);
-    if (hu) p.push(`${ones[hu]} Hundred`);
-    if (re) p.push(twoD(re));
-    return `${p.join(' ')} Rupees Only`;
-};
-
-const payStatus = (paid, net) => {
-    if (paid <= 0) return { label: 'UNPAID', color: '#ef4444', bg: '#fef2f2' };
-    if (paid >= net) return { label: 'PAID', color: '#16a34a', bg: '#f0fdf4' };
-    return { label: 'PARTIAL', color: '#d97706', bg: '#fffbeb' };
-};
-
-const titleCase = (id) => {
-    if (!id || id === 'default') return 'School';
-    return id.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-};
-
 const getSchool = () => {
     try {
         const raw = sessionStorage.getItem('auth_user') || localStorage.getItem('auth_user');
         const u = raw ? JSON.parse(raw) : {};
-        const tid = sessionStorage.getItem('tenant_id') || localStorage.getItem('tenant_id') || u.tenant_id;
+        const tid = sessionStorage.getItem('tenant_id') || localStorage.getItem('tenant_id') || u.tenant_id || '';
         return {
-            name: u.school_name || u.schoolName || u.tenant_name || u.tenantName || u.institution_name || u.name || titleCase(tid),
-            address: u.school_address || u.address || u.full_address || '',
-            phone: u.school_phone || u.phone || u.contact || u.mobile || '',
-            email: u.school_email || u.email || '',
-            website: u.website || u.school_website || '',
+            name: u.school_name || u.schoolName || u.tenant_name || u.tenantName || u.institution_name || u.name || 'ABC PUBLIC SCHOOL',
+            address: u.school_address || u.address || u.full_address || '123, School Road, City',
+            phone: u.school_phone || u.phone || u.contact || u.mobile || '0123-4567890',
+            email: u.school_email || u.email || 'info@school.com',
+            website: u.website || u.school_website || 'www.school.com',
         };
-    } catch { return { name: 'School', address: '', phone: '', email: '', website: '' }; }
+    } catch { return { name: 'ABC PUBLIC SCHOOL', address: '123, School Road, City', phone: '0123-4567890', email: 'info@school.com', website: 'www.school.com' }; }
 };
 
 const getLogo = () => { try { return localStorage.getItem('settings_logo') || null; } catch { return null; } };
 
-/* ══════════════════════════════════════════════
-   BILL PRINT  —  Premium A4 Invoice
-══════════════════════════════════════════════ */
 const BillPrint = React.forwardRef(({ sale }, ref) => {
     if (!sale) return null;
 
     const school = getSchool();
     const logo = getLogo();
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     const invoiceNo = sale.id || sale.records?.[0]?.id || Math.floor(10000 + Math.random() * 89999);
     const items = sale.items || [];
     const subtotal = Number(sale.subtotalAmount ?? sale.totalAmount ?? 0);
     const concession = Number(sale.concession || 0);
-    const paid = Number(sale.paid || 0);
-    const netTotal = Math.max(subtotal - concession, 0);
-    const balance = Math.max(netTotal - paid, 0);
-    const status = payStatus(paid, netTotal);
+    const otherCharges = Number(sale.otherCharges || 0);
+    const netTotal = Math.max(subtotal - concession + otherCharges, 0);
+
+    const paymentMode = sale.payment || 'Cash';
+    const txId = sale.transactionId || sale.referenceNo || '';
 
     return (
-        <div ref={ref} className="inv-root">
-
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                DARK HEADER BAND
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-header">
-                {/* Left: logo + school info */}
-                <div className="inv-header-brand">
-                    {logo
-                        ? <img src={logo} alt="logo" className="inv-logo" />
-                        : (
-                            <div className="inv-logo-init">
-                                {school.name.slice(0, 2).toUpperCase()}
+        <div ref={ref} className="receipt-container">
+            {/* Header Section */}
+            <header className="receipt-header">
+                <div className="logo-container">
+                    <div className="logo-placeholder">
+                        {logo ? (
+                            <img src={logo} alt="School Logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                        ) : (
+                            <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                        )}
+                    </div>
+                </div>
+                <div className="school-info">
+                    <h1 className="school-name">{school.name.toUpperCase()}</h1>
+                    <p className="tagline">DISCIPLINE &bull; KNOWLEDGE &bull; EXCELLENCE</p>
+                    <div className="contact-info">
+                        <div className="contact-item">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span>{school.address}</span>
+                        </div>
+                        <div className="contact-row">
+                            <div className="contact-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                <span>{school.phone}</span>
                             </div>
-                        )
-                    }
-                    <div className="inv-brand-text">
-                        <div className="inv-school-name">{school.name}</div>
-                        <div className="inv-school-meta">
-                            {[school.address, school.phone && `Ph: ${school.phone}`, school.email]
-                                .filter(Boolean).join(' • ')}
+                            <div className="contact-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                <span>{school.email}</span>
+                            </div>
+                            <div className="contact-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span>{school.website}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </header>
 
-                {/* Right: INVOICE title + number */}
-                <div className="inv-header-id">
-                    <div className="inv-title-word">INVOICE</div>
-                    <div className="inv-number">#{String(invoiceNo).padStart(6, '0')}</div>
-                    <div className="inv-header-dates">
-                        <span>{dateStr}</span>
-                        <span className="inv-dot">•</span>
-                        <span>{timeStr}</span>
-                    </div>
+            <div className="receipt-title-container">
+                <h2 className="receipt-title">BOOKS BILL RECEIPT</h2>
+            </div>
+
+            <div className="meta-info">
+                <div className="meta-item">
+                    <label>Receipt No. :</label>
+                    <span className="dotted-span">{String(invoiceNo).padStart(6, '0')}</span>
+                </div>
+                <div className="meta-item">
+                    <label>Date :</label>
+                    <span className="dotted-span">{dateStr}</span>
                 </div>
             </div>
 
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                DIAGONAL CUT DIVIDER
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-divider-cut" />
-
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                BILL-TO + PAYMENT INFO
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-info-row">
-                <div className="inv-info-card inv-bill-to">
-                    <div className="inv-card-label">
-                        <span className="inv-label-dot" />
-                        BILLED TO
+            {/* Student Details Section */}
+            <section className="section-box">
+                <h3 className="section-badge">STUDENT DETAILS</h3>
+                <div className="details-grid">
+                    <div className="detail-group">
+                        <label>Student Name :</label>
+                        <span className="dotted-span full-width">{sale.student || ''}</span>
                     </div>
-                    <div className="inv-student-name">{sale.student || '—'}</div>
-                    <div className="inv-student-meta">
-                        {sale.class && <span className="inv-pill inv-pill-blue">Class {sale.class}</span>}
-                        {sale.section && <span className="inv-pill inv-pill-purple">Sec {sale.section}</span>}
+                    <div className="detail-group">
+                        <label>Roll No. :</label>
+                        <span className="dotted-span full-width">{sale.rollNo || ''}</span>
                     </div>
-                    {sale.phone && <div className="inv-student-phone">📞 {sale.phone}</div>}
-                </div>
-
-                <div className="inv-info-card inv-payment-info">
-                    <div className="inv-card-label">
-                        <span className="inv-label-dot" />
-                        PAYMENT INFO
+                    <div className="detail-group">
+                        <label>Class & Section :</label>
+                        <span className="dotted-span full-width">{(sale.class ? `Class ${sale.class}` : '') + (sale.section ? ` Sec ${sale.section}` : '')}</span>
                     </div>
-                    <div className="inv-info-kv">
-                        <span>Method</span>
-                        <span className="inv-kv-val">{sale.payment || 'Cash'}</span>
+                    <div className="detail-group">
+                        <label>Academic Year :</label>
+                        <span className="dotted-span full-width">{sale.academicYear || now.getFullYear() + '-' + (now.getFullYear() + 1).toString().slice(-2)}</span>
                     </div>
-                    <div className="inv-info-kv">
-                        <span>Date</span>
-                        <span className="inv-kv-val">{dateStr}</span>
+                    <div className="detail-group">
+                        <label>Parent / Guardian Name :</label>
+                        <span className="dotted-span full-width">{sale.parentName || ''}</span>
                     </div>
-                    <div className="inv-info-kv">
-                        <span>Status</span>
-                        <span
-                            className="inv-status-badge"
-                            style={{ color: status.color, background: status.bg, borderColor: status.color }}
-                        >
-                            {status.label}
-                        </span>
+                    <div className="detail-group">
+                        <label>Mobile No. :</label>
+                        <span className="dotted-span full-width">{sale.phone || ''}</span>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                ITEMS TABLE
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-table-section">
-                <table className="inv-table">
+            {/* Books Purchase Details Section */}
+            <section className="section-box no-padding">
+                <h3 className="section-badge badge-overlap">BOOKS PURCHASE DETAILS</h3>
+                <table className="items-table">
                     <thead>
-                        <tr className="inv-thead-row">
-                            <th className="inv-th inv-th-sl">SL</th>
-                            <th className="inv-th inv-th-desc">Book / Description</th>
-                            <th className="inv-th inv-th-type">Type</th>
-                            <th className="inv-th inv-th-qty">Qty</th>
-                            <th className="inv-th inv-th-rate">Unit Price</th>
-                            <th className="inv-th inv-th-total">Total</th>
+                        <tr>
+                            <th width="5%">S.NO.</th>
+                            <th width="30%">BOOK NAME</th>
+                            <th width="20%">SUBJECT</th>
+                            <th width="15%">PUBLISHER</th>
+                            <th width="10%">QTY.</th>
+                            <th width="10%">RATE (₹)</th>
+                            <th width="10%">AMOUNT (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
                         {items.map((item, i) => {
-                            const rate = item.total && item.qty
-                                ? (Number(item.total) / Number(item.qty)) : 0;
+                            const rate = item.total && item.qty ? (Number(item.total) / Number(item.qty)) : 0;
                             return (
-                                <tr key={i} className={`inv-tr ${i % 2 === 1 ? 'inv-tr-alt' : ''}`}>
-                                    <td className="inv-td inv-td-center inv-td-sl">{i + 1}</td>
-                                    <td className="inv-td inv-td-name">{item.name}</td>
-                                    <td className="inv-td inv-td-center">
-                                        <span className={`inv-type-badge ${item.type === 'Set' ? 'inv-type-set' : 'inv-type-single'}`}>
-                                            {item.type || 'Set'}
-                                        </span>
-                                    </td>
-                                    <td className="inv-td inv-td-center">{item.qty}</td>
-                                    <td className="inv-td inv-td-right">₹ {fmt(rate)}</td>
-                                    <td className="inv-td inv-td-right inv-td-amt">₹ {fmt(item.total)}</td>
+                                <tr key={i}>
+                                    <td className="text-center">{i + 1}</td>
+                                    <td className="text-left pd-left">{item.name}</td>
+                                    <td className="text-left pd-left">{item.subject || ''}</td>
+                                    <td className="text-left pd-left">{item.publisher || ''}</td>
+                                    <td className="text-center">{item.qty}</td>
+                                    <td className="text-right pd-right">{fmt(rate)}</td>
+                                    <td className="text-right pd-right">{fmt(item.total)}</td>
                                 </tr>
                             );
                         })}
-                        {/* filler rows */}
-                        {items.length < 5 && Array.from({ length: 5 - items.length }).map((_, i) => (
-                            <tr key={`f${i}`} className={`inv-tr inv-tr-filler ${(items.length + i) % 2 === 1 ? 'inv-tr-alt' : ''}`}>
-                                <td className="inv-td" colSpan={6}>&nbsp;</td>
-                            </tr>
-                        ))}
+                        {/* Filler rows removed to allow dynamic height and better fitting on a single page */}
                     </tbody>
                 </table>
-            </div>
-
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                TOTALS + WORDS
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-bottom-row">
-                {/* Left: words + note */}
-                <div className="inv-bottom-left">
-                    <div className="inv-words-box">
-                        <div className="inv-words-label">Amount in Words</div>
-                        <div className="inv-words-val">{toWords(netTotal)}</div>
-                    </div>
-                    <div className="inv-note">
-                        <strong>Note:</strong> Books once sold are non-refundable unless defective.
-                        Please retain this invoice for your records.
-                    </div>
-                </div>
-
-                {/* Right: totals */}
-                <div className="inv-totals">
-                    <div className="inv-totals-row">
-                        <span>Subtotal</span>
-                        <span>₹ {fmt(subtotal)}</span>
-                    </div>
-                    {concession > 0 && (
-                        <div className="inv-totals-row inv-tr-disc">
-                            <span>Discount / Concession</span>
-                            <span>– ₹ {fmt(concession)}</span>
+                
+                <div className="totals-section">
+                    <div className="thank-you-graphics">
+                        <div className="graphics-icon">📚</div>
+                        <div className="graphics-text">
+                            <h4>Thank You!</h4>
+                            <p>We appreciate your trust in us.</p>
                         </div>
-                    )}
-                    <div className="inv-totals-sep" />
-                    <div className="inv-totals-row inv-tr-net">
-                        <span>Net Payable</span>
-                        <span>₹ {fmt(netTotal)}</span>
                     </div>
-                    <div className="inv-totals-row inv-tr-paid">
-                        <span>Amount Paid</span>
-                        <span>₹ {fmt(paid)}</span>
+                    <div className="totals-table-container">
+                        <table className="totals-table">
+                            <tbody>
+                                <tr>
+                                    <td className="text-right label-cell">TOTAL BOOKS AMOUNT</td>
+                                    <td className="currency-sym">₹</td>
+                                    <td className="value-cell text-right pr-2 font-bold">{fmt(subtotal)}</td>
+                                </tr>
+                                <tr>
+                                    <td className="text-right label-cell">DISCOUNT</td>
+                                    <td className="currency-sym">₹</td>
+                                    <td className="value-cell text-right pr-2 font-bold">{fmt(concession)}</td>
+                                </tr>
+                                <tr>
+                                    <td className="text-right label-cell">OTHER CHARGES</td>
+                                    <td className="currency-sym">₹</td>
+                                    <td className="value-cell text-right pr-2 font-bold">{fmt(otherCharges)}</td>
+                                </tr>
+                                <tr className="grand-total-row">
+                                    <td className="text-right label-cell">GRAND TOTAL</td>
+                                    <td className="currency-sym">₹</td>
+                                    <td className="value-cell text-right pr-2 font-bold">{fmt(netTotal)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div className={`inv-totals-row ${balance > 0 ? 'inv-tr-due' : 'inv-tr-clear'}`}>
-                        <span>{balance > 0 ? 'Balance Due' : '✓ Cleared'}</span>
-                        <span>₹ {fmt(balance)}</span>
+                </div>
+            </section>
+
+            {/* Payment Details Section */}
+            <section className="section-box">
+                <h3 className="section-badge">PAYMENT DETAILS</h3>
+                <div className="payment-modes">
+                    <label>Payment Mode :</label>
+                    {['Cash', 'UPI', 'Card', 'Bank Transfer'].map(mode => (
+                        <label key={mode} className="checkbox-label">
+                            <input type="checkbox" readOnly checked={paymentMode === mode} /> {mode}
+                        </label>
+                    ))}
+                    <div className="other-mode">
+                        <label className="checkbox-label">
+                            <input type="checkbox" readOnly checked={!['Cash', 'UPI', 'Card', 'Bank Transfer'].includes(paymentMode)} /> Other
+                        </label>
+                        <span className="dotted-span short">{!['Cash', 'UPI', 'Card', 'Bank Transfer'].includes(paymentMode) ? paymentMode : ''}</span>
                     </div>
+                </div>
+                <div className="transaction-detail">
+                    <label>Transaction / Reference No. :</label>
+                    <span className="dotted-span full-width">{txId}</span>
+                </div>
+            </section>
+
+            {/* Footer Notes Section */}
+            <div className="footer-layout">
+                <div className="notes-box section-box">
+                    <h3 className="section-badge">IMPORTANT NOTES</h3>
+                    <ul className="notes-list">
+                        <li>Books once sold will not be exchanged or returned.</li>
+                        <li>Please verify all books before leaving the counter.</li>
+                        <li>Keep this receipt for future reference.</li>
+                        <li>Damaged books should be reported immediately.</li>
+                    </ul>
+                </div>
+                
+                <div className="seal-box">
+                    <div className="seal-circle">
+                        <span className="star">★</span>
+                        <span className="seal-text">SCHOOL<br/>SEAL</span>
+                        <span className="star">★</span>
+                    </div>
+                </div>
+
+                <div className="signatures-box">
+                    <table className="sig-table">
+                        <tbody>
+                            <tr>
+                                <th>ISSUED BY</th>
+                                <th>PARENT / GUARDIAN</th>
+                            </tr>
+                            <tr>
+                                <td className="sig-space"></td>
+                                <td className="sig-space"></td>
+                            </tr>
+                            <tr>
+                                <td className="sig-line"><span>Signature</span></td>
+                                <td className="sig-line"><span>Signature</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                FOOTER  — signature + thank you
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-footer">
-                <div className="inv-sig-area">
-                    <div className="inv-sig-line" />
-                    <div className="inv-sig-label">Authorised Signatory</div>
-                    <div className="inv-sig-for">For {school.name}</div>
-                </div>
-
-                <div className="inv-thankyou">
-                    <div className="inv-ty-main">Thank You!</div>
-                    <div className="inv-ty-sub">We appreciate your trust in us. 🎓</div>
-                    {school.website && <div className="inv-ty-web">{school.website}</div>}
-                </div>
-
-                <div className="inv-received-area">
-                    <div className="inv-sig-line" />
-                    <div className="inv-sig-label">Receiver's Signature</div>
-                    <div className="inv-sig-for">Student / Parent</div>
-                </div>
+            <div className="footer-greeting">
+                <svg className="ornament" viewBox="0 0 100 20" width="60" height="15"><path d="M0 10 Q 25 20, 50 10 T 100 10" fill="none" stroke="#333" strokeWidth="1.5"/></svg>
+                <span>Thank You! Visit Again!</span>
+                <svg className="ornament" viewBox="0 0 100 20" width="60" height="15"><path d="M0 10 Q 25 20, 50 10 T 100 10" fill="none" stroke="#333" strokeWidth="1.5"/></svg>
             </div>
-
-            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                BOTTOM STRIP
-            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-            <div className="inv-strip">
-                <span>Invoice #{String(invoiceNo).padStart(6, '0')}</span>
-                <span>•</span>
-                <span>{school.name}</span>
-                <span>•</span>
-                <span>{dateStr}</span>
-            </div>
-
         </div>
     );
 });
